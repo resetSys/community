@@ -1,0 +1,23 @@
+/* perMan----------- */
+/* 地址选择器 */
+.distpicker-address-wrapper{
+  padding-left: 5px;
+}
+.distpicker-address-wrapper select{
+  width: 100px !important;
+}
+/* 解决下拉框显示不全的bug */
+.el-scrollbar__wrap{
+  margin-bottom: 0 !important;
+}
+/* 当人脸照片未加载时 */
+.image-slot{
+  background-color: #fff;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed #d9d9d9;
+  box-sizing: border-box;
+  border-radius: 5px;
+}
