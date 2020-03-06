@@ -3,13 +3,12 @@
     <title-bar>
       <span slot="title">人脸识别设备</span>
       <span slot="control">
-        <el-button type="primary" size="small" @click="addDrawer = true">新增</el-button>
+        <el-button type="primary" size="small" @click="handleAdd">新增</el-button>
       </span>
     </title-bar>
     <search-bar>
       <span slot="control">
-        <el-input size="small" style="width:200px;"></el-input>
-        <el-button size="small" type="primary">搜索</el-button>
+        
       </span>
     </search-bar>
     <el-scrollbar class="scrollbar">
@@ -22,28 +21,41 @@
         <el-table-column
           prop="device_id"
           align="center"
-          label="设备id"
+          label="设备ID"
+          show-overflow-tooltip
           width="100">
         </el-table-column>
         <el-table-column
           prop="device_name"
           align="center"
+          show-overflow-tooltip
           label="设备名称">
         </el-table-column>
         <el-table-column
           prop="ip"
           align="center"
+          show-overflow-tooltip
           label="设备IP">
         </el-table-column>
         <el-table-column
           prop="location"
           align="center"
+          show-overflow-tooltip
           label="设备位置">
         </el-table-column>
         <el-table-column
           prop="time"
           align="center"
+          :formatter="formatTime"
+          show-overflow-tooltip
           label="时间">
+        </el-table-column>
+        <el-table-column
+          prop="type"
+          align="center"
+          show-overflow-tooltip
+          :formatter="formatType"
+          label="类型">
         </el-table-column>
         <el-table-column
           align="center"
@@ -78,6 +90,17 @@
             <el-form-item label="设备位置" prop="location">
               <el-input v-model="addForm.location"></el-input>
             </el-form-item>
+            <el-form-item label="设备类型" prop="type">
+               <el-select v-model="addForm.type" placeholder="请选择" style="width:100%;"
+                clearable>
+                <el-option
+                  v-for="item in deviceType"
+                  :key="item.typeNum"
+                  :label="item.typeStr"
+                  :value="item.typeNum">
+                </el-option>
+              </el-select>
+            </el-form-item>
           </el-form>
         </div>
       </el-scrollbar>
@@ -96,33 +119,64 @@ import pagination from "components/common/pagination/Pagination"
 
 //请求
 import {request} from "@/network/request"
+//工具方法
+import { formatTime } from "@/utils";
 
 export default {
   name: 'face',
   data() {
+    let ipCheck = (rule, value, callback) =>{
+      let reg = /^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$/
+      if (!reg.test(value)) {
+        callback(new Error('格式不正确'))
+      } else {
+        callback()
+      }
+    }
     return {
       addDrawer:false,
       addForm:{
         device_name:"",
         ip:"",
-        location:""
+        location:"",
+        type:null,
+        device_id:null
       },
       addFormRule:{
         device_name:[
-          {required: true, message: '请输入设备名称', trigger: 'blur'}
+          {required: true, message: '请输入设备名称', trigger: 'blur'},
+          {validator:(rule, value, callback)=>{
+            if (value.length > 40) {
+              callback(new Error ('长度限制40'))
+            } else {
+              callback()
+            }
+          },trigger: 'blur'}
         ],
         ip:[
-          {required: true, message: '请输入设备IP', trigger: 'blur'}
+          {required: true, message: '请输入设备IP', trigger: 'blur'},
+          {validator:ipCheck,trigger:'blur'}
         ],
         location:[
+          {validator:(rule, value, callback)=>{
+            if (typeof value === 'string' && value.length > 200) {
+              callback(new Error ('长度限制200'))
+            } else {
+              callback()
+            }
+          },trigger: 'blur'}
+        ],
+        type:[
           {required: true, message: '请输入设备位置', trigger: 'blur'}
         ]
       },
+      deviceType:[],
       deviceData:[],
       //分页内容
       pageSize:20,
       allPage:100,
-      currPage:1
+      currPage:1,
+      submitType:1,//记录是注册还是修改
     }
   },
   components: {
@@ -131,14 +185,67 @@ export default {
     pagination
   },
   methods:{
+    handleAdd(){
+      this.addDrawer = true
+      this.submitType = 1
+    },
     submit(){
       //提交表单
+      /*
+        当新增的时候使用新增的接口和数据
+        当修改的时候调用修改的接口和数据
+      */
       // 提交成功后应该关闭drawer，表单会自动清除
       this.$refs['addForm'].validate((valid) => {
         if (valid) {
-          window.alert('submit!');
-          //提交成功后清空表单
-          this.closeDrawer.call(this)
+          if (this.submitType === 1) {
+            //执行注册
+            request({
+                url:"/device/insert",
+                method:"post",
+                data:{
+                  device_name:this.addForm.device_name,
+                  location:this.addForm.location,
+                  type:this.addForm.type,
+                  ip:this.addForm.ip
+                }
+              }).then(res => {
+              // window.console.log(res)
+              this.$message({
+                message: res.data.respond,
+                type: 'success'
+              });
+              //成功后刷新
+              this.getDeviceData.call(this)
+              this.closeDrawer.call(this)
+            }).catch(err =>{
+              window.console.log(err)
+            })
+          } else if(this.submitType === 2){
+            //执行修改
+            request({
+                url:"/device/update",
+                method:"post",
+                data:{
+                  device_name:this.addForm.device_name,
+                  device_id:this.addForm.device_id,
+                  location:this.addForm.location,
+                  type:this.addForm.type,
+                  ip:this.addForm.ip,
+                }
+              }).then(res => {
+              // window.console.log(res)
+              this.$message({
+                message: res.data.respond,
+                type: 'success'
+              });
+              //成功后刷新
+              this.getDeviceData.call(this)
+              this.closeDrawer.call(this)
+            }).catch(err =>{
+              window.console.log(err)
+            })
+          }
         } else {
           return false;
         }
@@ -153,15 +260,38 @@ export default {
       this.addDrawer = false
     },
     delMsg(row){//删除账户
-      window.console.log(row)
-      this.$confirm('确定删除该账户吗?', '提示', {
+      this.$prompt('您确定要删除该设备吗?删除设备的同时将会删除设备的相关的考勤和人员出入的记录，输入“确定”删除该设备', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        inputValidator:(value)=>{
+          if (value === "确定") {
+            return true
+          } else {
+            return "输入“确定”删除该设备"
+          }
+        }
       }).then(() => {
-        window.alert("发送请求，删除该人员")
+        request({
+          url:"/device/delete",
+          method:"post",
+          data:{
+            device_id:row.device_id
+          }
+        }).then((res) =>{
+          this.$message({
+            type: 'success',
+            message: res.data.respond,
+          });
+          //刷新数据
+          this.getDeviceData.call(this)
+        }).catch(err =>{
+          window.console.log(err)
+        })
       }).catch(() => {
-        window.alert("取消删除")
+        this.$message({
+          type: 'info',
+          message: '取消删除'
+        });       
       });
     },
     editMsg(row){//修改设备信息
@@ -176,19 +306,18 @@ export default {
         this.addForm[key] = row[key]
       }
       this.addDrawer = true
+      this.submitType = 2
     },
     getDeviceData(){//请求设备数据
-      window.console.log(this.pageSize)
-      window.console.log(this.currPage)
       request({
-        url:"http://192.168.1.215:8080/wisdom_factorys/device/select",
+        url:"/device/select",
         method:"post",
         data:{
           currentPage:this.currPage,
           pageSize:this.pageSize
         }
       }).then(res => {
-        window.console.log(res)
+        // window.console.log(res)
         //将数据循环放进数组中
         this.deviceData = []
         let {allCount,list} = res.data.respond
@@ -200,17 +329,52 @@ export default {
         window.console.log(e)
       })
     },
+    getDeviceType(){//获取设备类型
+      request({
+        url:"/device/type",
+        method:"get",
+      }).then(res =>{
+        this.deviceType = res.data.respond.deviceTypes
+      }).catch(err =>{
+        window.console.log(err)
+      })
+    },
     hanSiChange(val){
-      window.console.log(`每页 ${val} 条`);
+      // window.console.log(`每页 ${val} 条`);
       this.pageSize = val
+      this.getDeviceData.call(this)
     },
     hanCurrChange(val){
-      window.console.log(`当前页: ${val}`);
+      // window.console.log(`当前页: ${val}`);
       this.currPage = val
+      this.getDeviceData.call(this)
+
+    },
+    //转换表格数据格式
+    formatTime(row){
+      // window.console.log(row, column, cellValue, index)
+      return formatTime(row.time,'Y年M月D日 h:m:s')
+    },
+    formatType(row){//转换type
+      switch (row.type) {
+        case 1:
+          return "人脸识别设备进"
+        case 2:
+          return "人脸识别设备出"
+        case 3:
+          return "人脸识别设备 出&入"
+        case 4:
+          return "员工注册设备"
+        case 5:
+          return "访客注册设备"
+        default:
+          break;
+      }
     }
   },
   created(){
     this.getDeviceData.call(this)
+    this.getDeviceType.call(this)
   },
 }
 </script>

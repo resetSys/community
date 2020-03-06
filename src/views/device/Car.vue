@@ -20,13 +20,13 @@
         stripe
         empty-text="暂无数据">
         <el-table-column
-          prop="name"
+          prop="id"
           align="center"
           label="设备id"
           width="100">
         </el-table-column>
         <el-table-column
-          prop="id"
+          prop="name"
           align="center"
           label="设备名称">
         </el-table-column>
@@ -39,7 +39,7 @@
           align="center"
           label="操作">
           <template slot-scope="scope">
-            <el-button style="color:#409EFF;" type="text">编辑</el-button>
+            <el-button style="color:#409EFF;" type="text" @click="editMsg(scope.row)">编辑</el-button>
             <el-button style="color:#F56C6C;" type="text" @click="delMsg(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -130,6 +130,19 @@ export default {
       }).catch(() => {
         window.alert("取消删除")
       });
+    },
+    editMsg(row){//修改设备信息
+      /*
+        将值赋值给注册表单
+        将drawer打开
+      */
+      for (const key in this.addForm) {
+        // if (this.addForm.hasOwnProperty(key)) {
+          
+        // }
+        this.addForm[key] = row[key]
+      }
+      this.addDrawer = true
     },
   }
 }
