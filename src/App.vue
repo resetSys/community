@@ -1,17 +1,16 @@
 <template>
   <div id="app">
-    <base-view/>
+    <router-view/>
   </div>
 </template>
 
 <script>
-import baseView from "views/base/BaseView"
-
 export default {
   name: 'app',
-  components: {
-    baseView
-  }
+  // components: {
+  //   home,
+  //   login
+  // },
 }
 </script>
 

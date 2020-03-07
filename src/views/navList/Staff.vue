@@ -8,13 +8,13 @@
           <span>基础管理</span>
         </template>
         <el-menu-item-group>
-          <router-link to="/perMan">
+          <router-link to="/home/perMan">
             <el-menu-item index="1-1">员工管理</el-menu-item>
           </router-link>
-          <router-link to="/divMan">
+          <router-link to="/home/divMan">
             <el-menu-item index="1-2">部门管理</el-menu-item>
           </router-link>
-          <router-link to="/posMan">
+          <router-link to="/home/posMan">
             <el-menu-item index="1-3">职位管理</el-menu-item>
           </router-link>
         </el-menu-item-group>

@@ -116,7 +116,6 @@
 import titleBar from "components/common/titleBar/TitleBar"
 import searchBar from "components/common/searchBar/SearchBar"
 import pagination from "components/common/pagination/Pagination"
-
 //请求
 import {request} from "@/network/request"
 //工具方法
@@ -174,7 +173,7 @@ export default {
       deviceData:[],
       //分页内容
       pageSize:20,
-      allPage:100,
+      allPage:0,
       currPage:1,
       submitType:1,//记录是注册还是修改
     }

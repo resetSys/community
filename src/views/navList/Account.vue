@@ -7,7 +7,7 @@
           <span>基础管理</span>
         </template>
         <el-menu-item-group>
-          <router-link to="/accountMan">
+          <router-link to="/home/accountMan">
             <el-menu-item index="1-1">账户管理</el-menu-item>
           </router-link>
         </el-menu-item-group>

@@ -7,10 +7,10 @@
           <span>考勤规则</span>
         </template>
         <el-menu-item-group>
-          <router-link to="/commonCheck">
+          <router-link to="/home/commonCheck">
             <el-menu-item index="1-1">常规考勤</el-menu-item>
           </router-link>
-          <router-link to="/freeCheck">
+          <router-link to="/home/freeCheck">
             <el-menu-item index="1-2">自由考勤</el-menu-item>
           </router-link>
         </el-menu-item-group>
@@ -21,10 +21,10 @@
           <span>考勤报表</span>
         </template>
         <el-menu-item-group>
-          <router-link to="/single">
+          <router-link to="/home/single">
             <el-menu-item index="2-1">单人报表</el-menu-item>
           </router-link>
-          <router-link to="/department">
+          <router-link to="/home/department">
             <el-menu-item index="2-2">部门报表</el-menu-item>
           </router-link>
         </el-menu-item-group>
@@ -35,7 +35,7 @@
           <span>考勤班组</span>
         </template>
         <el-menu-item-group>
-          <router-link to="/teamMan">
+          <router-link to="/home/teamMan">
             <el-menu-item index="3-1">班组管理</el-menu-item>
           </router-link>
         </el-menu-item-group>

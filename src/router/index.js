@@ -3,6 +3,10 @@ import Vue from "vue"
 import vueRouter from "vue-router"
 
 //导入页面组件
+/*login*/
+const Login = () => import("views/base/Login.vue")
+/*home*/
+const Home = () => import("views/base/Home.vue")
 //职工管理
 const PerMan = () => import("views/staff/PerMan")
 const DivMan = () => import("views/staff/DivMan")
@@ -23,40 +27,53 @@ Vue.use(vueRouter)
 
 let routes = [{
   path:"/",
-  redirect:"/perMan"
+  redirect:"/login"
 },{
-  path:"/perMan",
-  component:PerMan
+  path:"/login",
+  component:Login
 },{
-  path:"/divMan",
-  component:DivMan
-},{
-  path:"/posMan",
-  component:PosMan
-},{
-  path:"/commonCheck",
-  component:CommonCheck
-},{
-  path:"/freeCheck",
-  component:FreeCheck
-},{
-  path:"/single",
-  component:Single
-},{
-  path:"/department",
-  component:Department
-},{
-  path:"/teamMan",
-  component:TeamMan
-},{
-  path:"/accountMan",
-  component:AccountMan
-},{
-  path:"/faceDevice",
-  component:FaceDevice
-},{
-  path:"/carDevice",
-  component:CarDevice
+  path:"/home",
+  component:Home,
+  children:[
+    {
+      path:"/",
+      redirect:"/home/perMan"
+    },
+    {
+      path:"/home/perMan",
+      component:PerMan
+    },{
+      path:"/home/divMan",
+      component:DivMan
+    },{
+      path:"/home/posMan",
+      component:PosMan
+    },{
+      path:"/home/commonCheck",
+      component:CommonCheck
+    },{
+      path:"/home/freeCheck",
+      component:FreeCheck
+    },{
+      path:"/home/single",
+      component:Single
+    },{
+      path:"/home/department",
+      component:Department
+    },{
+      path:"/home/teamMan",
+      component:TeamMan
+    },{
+      path:"/home/accountMan",
+      component:AccountMan
+    },{
+      path:"/home/faceDevice",
+      component:FaceDevice
+    },{
+      path:"/home/carDevice",
+      component:CarDevice
+    }
+  ]
 }]
 
 const router = new vueRouter({
