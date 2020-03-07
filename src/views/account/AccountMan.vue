@@ -194,7 +194,7 @@ export default {
       this.submitType = 1
     },
     submit(){
-      window.console.log(this.addForm)
+      // window.console.log(this.addForm)
       //提交表单
       // 提交成功后应该关闭drawer，表单会自动清除
       this.$refs['addForm'].validate((valid) => {

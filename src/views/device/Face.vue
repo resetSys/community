@@ -51,7 +51,7 @@
           label="时间">
         </el-table-column>
         <el-table-column
-          prop="type"
+          prop="typeNumber"
           align="center"
           show-overflow-tooltip
           :formatter="formatType"

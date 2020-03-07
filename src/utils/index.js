@@ -39,4 +39,28 @@ function formatTime(timeStape,format){
   }
   return format;
 }
-export {transform,formatTime}
+
+/*
+  封装请求状态码操作
+  1、当状态码为 -1 的时候跳转路由
+  2、当状态吗为 0 的时候显示报错信息
+  3、当状态吗为 1 时将正常数据返回
+  每个判断都会有返回值，当返回值不为false时处理
+*/
+function handleRequest(data) {
+  if (data.status === -1) {
+    this.$router.replace(data.respond)
+    window.console.log("跳转")
+    return false
+  } else if(data.status === 0) {
+    this.$message({
+      message:data.respond,
+      type:"success"
+    })
+    return false
+  } else if(data.status === 1) {
+    window.console.log(data.respond)
+  }
+}
+
+export {transform,formatTime,handleRequest}
