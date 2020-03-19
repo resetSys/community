@@ -1,8 +1,11 @@
 <template>
-  <div class="base-view">
+  <div class="base-view" v-loading="$store.state.loading">
     <el-container class="container">
       <el-aside width="70px" style="overflow:hidden;">
         <tab-control>
+          <div style="width:100%;height:30px;text-align:center;margin:10px 0;">
+            <img style="height:100%;" src="~/assets/imgs/home/logo.png" alt="">
+          </div>
           <tab-control-item @click.native="tabConClick('staff')" 
             :class="{'tabConActive':navName == 'staff','is-disabled':isDisabled('staff')}">
             <img slot="img" src="~assets/imgs/tabControl/staff.png" alt="">
@@ -43,7 +46,7 @@
           </el-aside>
           <el-main class="main">
             <show @showClick="showClick" v-show="!navAside"/>
-            <router-view/>
+            <router-view></router-view>
           </el-main>
         </el-container>
       </el-container>
@@ -102,7 +105,15 @@ export default {
       return this.limits.indexOf(value) === -1
     },
     tabConClick(comName){
-      this.navName = comName;
+      let result = this.limits.indexOf(comName)
+      if (result!== -1) {
+        this.navName = comName;
+      } else {
+        this.$message({
+          message: '您没有该权限',
+          type: 'warning'
+        });
+      }
     },
     hideClick(boo){
       this.navAside = boo;
@@ -154,6 +165,7 @@ export default {
 .main{
   padding: 0;
   position: relative;
+  overflow: hidden;
 }
 .tabConActive{
   background-color: #495057;

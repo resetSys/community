@@ -41,7 +41,7 @@
           label="操作">
           <template slot-scope="scope">
             <el-button style="color:var(--brand-color);" type="text" @click="getLimitData(scope.row)">权限</el-button>
-            <el-button style="color:var(--brand-color);" type="text" @click="bindEquiDialog=true">绑定设备</el-button>
+            <el-button style="color:var(--brand-color);" type="text" @click="getDevice(scope.row)">绑定设备</el-button>
             <el-button style="color:var(--brand-color);" type="text" @click="editMsg(scope.row)">编辑</el-button>
             <el-button style="color:var(--delete-color);" type="text" @click="delMsg(scope.row)">删除</el-button>
           </template>
@@ -49,7 +49,7 @@
       </el-table>
     </el-scrollbar>
     <!-- 分页组件 -->
-    <pagination :pageSize="pageSize" :allPage="allPage"
+    <pagination :pageSize="pageSize" :allPage="allPage" :currIndex="currPage"
       @hanSiChange="hanSiChange" @hanCurrChange="hanCurrChange"></pagination>
     <!-- 
     新增需要的功能 
@@ -74,7 +74,7 @@
       </div>
       <el-scrollbar style="height:calc(100vh - 100px);">
         <div class="drawer-con">
-          <el-form :model="addForm" :rules="addFormRule" ref="addForm" label-width="5vw" label-position="right">
+          <el-form :model="addForm" :rules="addFormRule" ref="addForm" label-width="7vw" label-position="right">
             <el-form-item label="名称" prop="user">
               <el-input v-model="addForm.user" placeholder="中英文长度不超过40"></el-input>
             </el-form-item>
@@ -116,7 +116,30 @@
       title="绑定设备" :top="$store.state.dialogTop"
       :close-on-press-escape="$store.state.closeOnPresEscape"
       :close-on-click-modal="$store.state.closeOnClickModal">
-      绑定设备  
+
+      <p class="bind-title">人员注册设备:</p>
+      <el-checkbox-group
+        v-model="checkedDevice.person_login"
+        :max="1">
+        <el-checkbox v-for="item in deviceData.person_login" :label="item.device_id" :key="item.device_name">{{item.device_name}}</el-checkbox>
+      </el-checkbox-group>
+
+      <p class="bind-title">车牌识别设备:</p>
+      <el-checkbox-group
+        v-model="checkedDevice.plate_discern"
+        :max="1">
+        <el-checkbox v-for="item in deviceData.plate_discern" :label="item.device_id" :key="item.device_name">{{item.device_name}}</el-checkbox>
+      </el-checkbox-group>
+      <p class="bind-title">访客注册设备:</p>
+      <el-checkbox-group
+        v-model="checkedDevice.visitor_login"
+        :max="1">
+        <el-checkbox v-for="item in deviceData.visitor_login" :label="item.device_id" :key="item.device_name">{{item.device_name}}</el-checkbox>
+      </el-checkbox-group>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="bindEquiDialog = false">取 消</el-button>
+        <el-button type="primary" @click="submitBindDevice">确 定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -128,6 +151,8 @@ import searchBar from "components/common/searchBar/SearchBar"
 import pagination from "components/common/pagination/Pagination"
 //请求
 import {request} from "@/network/request"
+//工具
+import { handleRequest } from "@/utils";
 export default {
   name: 'accountMan',
   data() {
@@ -176,10 +201,16 @@ export default {
           },trigger: 'blur'}
         ]
       },
-      pageSize:20,
+      pageSize:30,
       allPage:0,
       currPage:1,
       submitType:1,//记录是注册还是修改
+      deviceData:{},
+      checkedDevice:{
+        visitor_login:[],
+        plate_discern:[],
+        person_login:[],
+      }
     }
   },
   components: {
@@ -199,6 +230,7 @@ export default {
       // 提交成功后应该关闭drawer，表单会自动清除
       this.$refs['addForm'].validate((valid) => {
         if (valid) {
+          this.$store.commit('handleLoding')
           if (this.submitType === 1) {
             //执行注册
             request({
@@ -219,6 +251,8 @@ export default {
               this.closeDrawer.call(this)
             }).catch(err =>{
               window.console.log(err)
+            }).finally(()=>{
+              this.$store.commit('handleLoding')
             })
           } else if(this.submitType === 2){
             //执行修改
@@ -242,6 +276,8 @@ export default {
               this.closeDrawer.call(this)
             }).catch(err =>{
               window.console.log(err)
+            }).finally(()=>{
+              this.$store.commit('handleLoding')
             })
           }
         } else {
@@ -263,7 +299,7 @@ export default {
       this.$prompt('您确定要删除该账号吗?输入“确定”删除该账号', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        inputValidator:(value)=>{
+        inputValidator:(value) =>{
           if (value === "确定") {
             return true
           } else {
@@ -271,6 +307,7 @@ export default {
           }
         }
       }).then(() => {
+        this.$store.commit('handleLoding')
         request({
           url:"/account/delete",
           method:"post",
@@ -286,12 +323,11 @@ export default {
           this.getAccData.call(this)
         }).catch(err =>{
           window.console.log(err)
+        }).finally(()=>{
+          this.$store.commit('handleLoding')
         })
       }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '取消删除'
-        });       
+       
       });
     },
     //编辑账户
@@ -308,6 +344,7 @@ export default {
       this.submitType = 2
     },
     getAccData(){//获取账号数据
+      this.$store.commit('handleLoding')
       request({
         url:"/account/select",
         method:"post",
@@ -326,12 +363,15 @@ export default {
         this.allPage = allCount
       }).catch(e => {
         window.console.log(e)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
       })
     },
     getLimitData(row){//获取权限信息
       this.limitDialog = true
       //存储id，用于权限提交
       this.limitId = row.account_id
+      this.$store.commit('handleLoding')
       request({
         url:"/account/selectPower",
         method:"post",
@@ -352,9 +392,54 @@ export default {
         });
       }).catch(e => {
         window.console.log(e)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      }) 
+    },
+    getDevice(row){//获取绑定设备
+      this.bindEquiDialog = true
+      this.limitId = row.account_id
+      this.$store.commit('handleLoding')
+      request({
+        url:"/account/selectBindDevice",
+        method:"post",
+        data:{
+          account_id:row.account_id
+        }
+      }).then(res => {
+        let data = handleRequest(res.data);
+        this.deviceData = data.all;
+        // window.console.log(data)
+        /*
+          将已绑定的数据存储
+          如果绑定的设备中没有数据，那么就将本地数组清空
+        */
+        if (!data.bind) {
+          //如果为空，将本地的清空
+          for (const key in this.checkedDevice) {
+            if (this.checkedDevice.hasOwnProperty(key)) {
+              this.checkedDevice[key] = [];
+            }
+          }
+          // window.console.log("清空原数组")
+        } else {
+          for (const key in data.bind) {
+            if (data.bind.hasOwnProperty(key)) {
+              this.checkedDevice[key] = [];
+              // window.console.log(key)
+              this.checkedDevice[key].push(data.bind[key])
+            }
+          }
+          window.console.log("循环复制")
+
+        }
+      }).catch(e => {
+        window.console.log(e)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
       })
     },
-    submitLimit(){//提交选中曲权限
+    submitLimit(){//提交选中权限
       //遍历对象，将number取出来
       let powerArr = []
       this.limitsObj.forEach(ele1 => {
@@ -364,7 +449,8 @@ export default {
           }
         });
       });
-      window.console.log("powerArr："+powerArr)
+      // window.console.log("powerArr："+powerArr)
+      this.$store.commit('handleLoding')
       request({
         url:"/account/updatePower",
         method:"post",
@@ -380,6 +466,33 @@ export default {
         this.limitDialog = false
       }).catch(e => {
         window.console.log(e)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      })
+    },
+    submitBindDevice(){//提交绑定的设备
+      this.$store.commit('handleLoding')
+      request({
+        url:"/account/updateBindDevice",
+        method:"post",
+        data:{
+          account_id:this.limitId,
+          person_login:!this.checkedDevice.person_login ? null :this.checkedDevice.person_login[0],
+          plate_discern:!this.checkedDevice.visitor_login ? null :this.checkedDevice.visitor_login[0],
+          visitor_login:!this.checkedDevice.visitor_login ? null :this.checkedDevice.visitor_login[0],
+        }
+      }).then(res => {
+        // window.console.log(res)
+        let msg =  handleRequest(res.data);
+        this.$message({
+          message: msg,
+          type: 'success'
+        });
+        this.bindEquiDialog = false
+      }).catch(e => {
+        window.console.log(e)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
       })
     },
     handleCheckAllChange(val) {//全选权限
@@ -422,5 +535,10 @@ export default {
 .scrollbar{
   height: calc(100% - 150px);
 }
-
+/* 绑定设备title */
+.bind-title{
+  padding:2px 0;
+  font-size:14px;
+  color: #303133;
+}
 </style>

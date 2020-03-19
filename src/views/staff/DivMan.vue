@@ -3,30 +3,31 @@
     <title-bar>
       <span slot="title">部门管理</span>
       <span slot="control">
-        <el-button type="primary" size="small" @click="addDrawer = true">新增</el-button>
+        <el-button type="primary" size="small" @click="handleAdd">新增</el-button>
       </span>
     </title-bar>
     <search-bar>
-      <span slot="control">
+      <!-- <span slot="control">
         <el-input size="small" style="width:200px;"></el-input>
         <el-button size="small" type="primary">搜索</el-button>
-      </span>
+      </span> -->
     </search-bar>
     <div class="main">
-      <div class="tree_wrap">
-        <el-tree
-          :data="treeData"
-          node-key="id"
-          empty-text="暂无数据"
-          :default-expanded-keys="[2, 3]"
-          :default-checked-keys="[5]"
-          :props="defaultProps"
-          @node-contextmenu="openMenu"
-          @current-change="currChange">
-        </el-tree>
-      </div>
+      <el-scrollbar class="scrollbar">
+        <div class="tree_wrap">
+          <el-tree
+            :data="treeData"
+            node-key="branch_id"
+            empty-text="暂无数据"
+            :props="defaultProps"
+            @node-contextmenu="openMenu"
+            @current-change="currChange">
+          </el-tree>
+        </div>
+      </el-scrollbar>
       <div class="tree_content">
-      
+        <p style="font-size:18px;">部门备注:</p>
+        <p style="padding-top:10px">{{clickBranchItem.remarks}}</p>
       </div>
     </div>
     <!-- 新增根节点 -->
@@ -39,73 +40,86 @@
       </div>
       <div style="height:calc(100vh - 100px);">
         <div class="drawer-con">
-          
+          <el-form :model="branchForm" :rules="branchFormRule" ref="branchForm"
+            label-width="7vw" label-position="right">
+            <el-form-item label="部门名称" prop="branch_name">
+              <el-input v-model="branchForm.branch_name"></el-input>
+            </el-form-item>
+            <el-form-item label="部门备注" prop="remarks">
+              <el-input v-model="branchForm.remarks"></el-input>
+            </el-form-item>
+          </el-form>
         </div>
       </div>
       <div class="drawer-bottom">
-        <el-button type="primary">提交</el-button>
-        <el-button @click="addDrawer = false">取消</el-button>
+        <el-button type="primary" @click="submit">提交</el-button>
+        <el-button @click="close('branchForm','addDrawer')">取消</el-button>
       </div>
     </el-drawer>
     <!-- 自定义右键菜单 -->
     <div id="context_menu" @mouseleave="closeMenu">
-      <p @click="alertPromise('add')">添加</p>
-      <p @click="alertPromise('delete')">删除</p>
-      <p @click="alertPromise('edit')">编辑</p>
+      <p @click="handleAddSub()">添加</p>
+      <p @click="deleteRow(currMenuItem)">删除</p>
+      <p @click="edit(currMenuItem,'branchForm','addDrawer')">编辑</p>
     </div>
+    <!-- 新增子部门 -->
+    <el-dialog :visible.sync="addSubDialog" width="30%"
+      title="新增子部门" custom-class="limit-dialog"
+      :top="$store.state.dialogTop"
+      style="overflow:hidden">
+      <el-form :model="branchForm" :rules="branchFormRule" ref="branchForm"
+        label-width="7vw" label-position="right">
+        <el-form-item label="部门名称" prop="branch_name">
+          <el-input v-model="branchForm.branch_name"></el-input>
+        </el-form-item>
+        <el-form-item label="部门备注" prop="remarks">
+          <el-input v-model="branchForm.remarks"></el-input>
+        </el-form-item>
+      </el-form>
+      <div class="look-team-bottom">
+        <el-button type="primary" @click="submitSub(currMenuItem)">提交</el-button>
+        <el-button @click="close('branchForm','addSubDialog')">取消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import titleBar from "components/common/titleBar/TitleBar"
 import searchBar from "components/common/searchBar/SearchBar"
-
+//网络请求
+import { request } from "@/network/request";
+//工具
+import { handleRequest } from "@/utils"
 export default {
   name: 'divMan',
   data() {
     return {
       addDrawer:false,
+      addSubDialog:false,
       contextMenu:null,
-      currMenuItem:{},
-      treeData:[{
-        id: 1,
-        label: '一级 1',
-        children: [{
-          id: 4,
-          label: '二级 1-1',
-          children: [{
-            id: 9,
-            label: '三级 1-1-1'
-          }, {
-            id: 10,
-            label: '三级 1-1-2'
-          }]
-        }]
-      }, {
-        id: 2,
-        label: '一级 2',
-        children: [{
-          id: 5,
-          label: '二级 2-1'
-        }, {
-          id: 6,
-          label: '二级 2-2'
-        }]
-      }, {
-        id: 3,
-        label: '一级 3',
-        children: [{
-          id: 7,
-          label: '二级 3-1'
-        }, {
-          id: 8,
-          label: '二级 3-2'
-        }]
-      }],
+      currMenuItem:{},//保存右键点击的选项
+      clickBranchItem:{remarks:""},//保存点击的部门
+      treeData:null,
       defaultProps: {
         children: 'children',
-        label: 'label'
+        label: 'branch_name'
       },
+      branchForm:{
+        branch_id:null,
+        branch_name:"",
+        remarks:""
+      },
+      branchFormRule:{
+        branch_name:[
+          {required: true, message: '请输入名称', trigger: 'blur'},
+          {min:1,max:40, message: '名称不能超过40', trigger: 'blur'}
+        ],
+        remarks:[
+          {max:40, message: '备注不能超过400', trigger: 'blur'}
+        ]
+      },
+      submitType:1,
     }
   },
   components: {
@@ -113,6 +127,7 @@ export default {
     searchBar,
   },
   methods:{
+    //右键菜单展示
     openMenu(event,data){//右键触发
       //event,data,node,value
       this.currMenuItem = data
@@ -188,13 +203,194 @@ export default {
       }
 
     },
-    currChange(value,node){//当前选中节点时触发
-      window.console.log(value,node)
-      window.console.log("选中当前")
+    currChange(value){//当前选中节点时触发
+      // window.console.log(value,node)
+      this.clickBranchItem = value
     },
+
     getTreeData(){//获取部门数据
-      
+      this.$store.commit('handleLoding')
+      request({
+        url:"/branch/select",
+        method:"post",
+
+      }).then((res) => {
+        window.console.log(res)
+        let respond = handleRequest.call(this,res.data)
+        if (respond !== false) {
+          this.treeData = respond
+          
+        }
+      }).catch((err) => {
+        window.console.log(err)
+        
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      })
+    },
+
+    //部门管理
+    handleAdd(){
+      this.addDrawer = true
+      this.submitType = 1
+    },
+    submit(){//提交新增根部门
+      this.$refs['branchForm'].validate((valid) => {
+        if (valid) {
+          this.$store.commit('handleLoding')
+          if (this.submitType == 1) {
+            request({
+              url:"/branch/insertRoot",
+              method:"post",
+              data:{
+                branch_name:this.branchForm.branch_name,
+                remarks:this.branchForm.remarks
+              }
+            }).then((res) => {
+              window.console.log(res)
+              /*
+                注册成功后关闭注册框
+                刷新界面数据
+                清空表单
+              */
+              this.$message({
+                message: res.data.respond,
+                type: 'success'
+              });
+              this.getTreeData.call(this)
+              this.close.call(this,'branchForm','addDrawer')
+            }).catch((err) => {
+              window.console.log(err)
+              
+            }).finally(()=> {
+              this.$store.commit('handleLoding')
+            })
+          } else if(this.submitType == 2){
+            request({
+              url:"/branch/update",
+              method:"post",
+              data:{
+                branch_id:this.branchForm.branch_id,
+                branch_name:this.branchForm.branch_name,
+                remarks:this.branchForm.remarks
+              }
+            }).then((res) => {
+              window.console.log(res)
+              /*
+                注册成功后关闭注册框
+                刷新界面数据
+                清空表单
+              */
+              this.$message({
+                message: res.data.respond,
+                type: 'success'
+              });
+              this.getTreeData.call(this)
+              this.close.call(this,'branchForm','addDrawer')
+            }).catch((err) => {
+              window.console.log(err)
+              
+            }).finally(()=> {
+              this.$store.commit('handleLoding')
+            })
+          }
+        }
+      });
+    },
+    close(formName,dialog){//关闭注册抽屉
+      /*
+        首先清空表单，然后关闭drawer
+      */
+      this.$refs[formName].resetFields()
+      for (let key in this[formName]) {
+        this[formName][key] = null
+      }
+      this[dialog] = false
+    },
+    edit(row,formName,dialog){//修改
+      /*
+        将表格中的信息循环赋值到表单中
+      */
+      this.submitType = 2;
+      for (const key in this[formName]) {
+        if (this[formName].hasOwnProperty(key)) {
+          this[formName][key] = row[key]
+        }
+      }
+      this[dialog] = true
+    },
+    deleteRow(row){
+      this.$confirm('此操作将会删除该部门以及子部门', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+
+        this.$store.commit('handleLoding')
+        request({
+          url:"/branch/delete",
+          method:"post",
+          data:{
+            branch_id:row.branch_id
+          }
+        }).then((res) => {
+          window.console.log(res)
+          this.$message({
+            message: res.data.respond,
+            type: 'success'
+          });
+          this.getTreeData.call(this)
+        }).catch((err) => {
+          window.console.log(err)
+          
+        }).finally(()=> {
+          this.$store.commit('handleLoding')
+        })
+        
+      }).catch(() => {});
+    },
+    
+    //子部门编辑
+    handleAddSub(){
+      this.addSubDialog = true
+    },
+    submitSub(row){
+      this.$refs['branchForm'].validate((valid) => {
+        if (valid) {
+          this.$store.commit('handleLoding')
+          request({
+            url:"/branch/insertSon",
+            method:"post",
+            data:{
+              superior_id:row.branch_id,
+              branch_name:this.branchForm.branch_name,
+              remarks:this.branchForm.remarks
+            }
+          }).then((res) => {
+            window.console.log(res)
+            /*
+              注册成功后关闭注册框
+              刷新界面数据
+              清空表单
+            */
+            this.$message({
+              message: res.data.respond,
+              type: 'success'
+            });
+            this.getTreeData.call(this)
+            this.close.call(this,'branchForm','addSubDialog')
+          }).catch((err) => {
+            window.console.log(err)
+            
+          }).finally(()=> {
+            this.$store.commit('handleLoding')
+          })
+        }
+      });
     }
+  },
+  mounted(){
+    this.getTreeData.call(this)
   }
 }
 </script>
@@ -208,17 +404,22 @@ export default {
   display: flex;
   width: 100%;
   height: calc(100% - 100px);
-  background-color: rgba(0, 89, 255, 0.473);
+}
+.scrollbar{
+  height: 100%;
+  width: 30%;
+  box-sizing: border-box;
+  border-right: 1px solid #dcdcdc;
 }
 .tree_wrap{
-  width: 30%;
+  width: 100%;
   height: 100%;
-  background-color: antiquewhite;
 }
 .tree_content{
+  padding: 10px;
+  box-sizing: border-box;
   width: 70%;
   height: 100%;
-  background-color: aqua;
 }
 
 .custom-tree-node {
@@ -229,6 +430,7 @@ export default {
   font-size: 14px;
   padding-right: 8px;
 }
+
 /* 自定义右键菜单 */
 #context_menu{
   position: absolute;
@@ -250,5 +452,12 @@ export default {
 }
 #context_menu>p:hover{
   background-color: #dcdcdc;
+}
+/* 新增子部门表单底部 */
+.look-team-bottom{
+  width: 100%;
+  height: auto;
+  padding-top: 10px; 
+  text-align: center;
 }
 </style>

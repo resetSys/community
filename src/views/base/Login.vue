@@ -65,15 +65,15 @@ export default {
   },
   methods:{
     submit:function(){
-      const loading = this.$loading({
-          lock: true,
-          text: '加载中',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        });
       // this.$router.replace('/home')
       this.$refs['loginForm'].validate((valid) => {
         if (valid) {
+          const loading = this.$loading({
+            lock: true,
+            text: '加载中',
+            spinner: 'el-icon-loading',
+            background: 'rgba(0, 0, 0, 0.7)'
+          });
           request({
           url:"account/logon",
           method:"post",
@@ -82,13 +82,13 @@ export default {
             pass_md5:this.$md5(this.loginForm.pwd)
           }
         }).then((result) => {
-          window.console.log(result)
-          loading.close();
-          window.console.log(handleRequest(result.data))
-          
+          // window.console.log(result)
+          handleRequest.call(this,result.data)
         }).catch((err) => {
           window.console.log(err)
-        });
+        }).finally(()=> {
+          loading.close();
+        })
         }
       })
     }

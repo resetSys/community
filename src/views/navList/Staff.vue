@@ -14,8 +14,11 @@
           <router-link to="/home/divMan">
             <el-menu-item index="1-2">部门管理</el-menu-item>
           </router-link>
-          <router-link to="/home/posMan">
+          <!-- <router-link to="/home/posMan">
             <el-menu-item index="1-3">职位管理</el-menu-item>
+          </router-link> -->
+          <router-link to="/home/accRecords">
+            <el-menu-item index="1-3">出入记录</el-menu-item>
           </router-link>
         </el-menu-item-group>
       </el-submenu>

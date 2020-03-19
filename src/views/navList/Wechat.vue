@@ -1,6 +1,19 @@
 <template>
   <div class="wechat">
-    微信服务
+    <el-menu
+      :default-openeds="['1']">
+      <el-submenu index="1">
+        <template slot="title">
+          <i class="el-icon-caret-bottom"></i>
+          <span>基础管理</span>
+        </template>
+        <el-menu-item-group>
+          <router-link to="/home/infopush">
+            <el-menu-item index="1-1">微信推送</el-menu-item>
+          </router-link>
+        </el-menu-item-group>
+      </el-submenu>
+    </el-menu>
   </div>
 </template>
 

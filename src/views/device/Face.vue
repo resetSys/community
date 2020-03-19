@@ -68,7 +68,7 @@
       </el-table>
     </el-scrollbar>
     <!-- 分页组件 -->
-    <pagination :pageSize="pageSize" :allPage="allPage"
+    <pagination :pageSize="pageSize" :allPage="allPage" :currIndex="currPage"
       @hanSiChange="hanSiChange" @hanCurrChange="hanCurrChange"></pagination>
     <!-- 新增功能 -->
     <el-drawer :visible.sync="addDrawer" 
@@ -80,7 +80,9 @@
       </div>
       <el-scrollbar style="height:calc(100vh - 100px);">
         <div class="drawer-con">
-          <el-form :model="addForm" :rules="addFormRule" ref="addForm" label-width="5vw" label-position="right">
+          <el-form :model="addForm" 
+            :rules="addFormRule" ref="addForm" 
+            label-width="7vw" label-position="right">
             <el-form-item label="设备名称" prop="device_name">
               <el-input v-model="addForm.device_name"></el-input>
             </el-form-item>
@@ -197,6 +199,7 @@ export default {
       // 提交成功后应该关闭drawer，表单会自动清除
       this.$refs['addForm'].validate((valid) => {
         if (valid) {
+          this.$store.commit('handleLoding')
           if (this.submitType === 1) {
             //执行注册
             request({
@@ -219,6 +222,8 @@ export default {
               this.closeDrawer.call(this)
             }).catch(err =>{
               window.console.log(err)
+            }).finally(()=>{
+              this.$store.commit('handleLoding')
             })
           } else if(this.submitType === 2){
             //执行修改
@@ -243,6 +248,8 @@ export default {
               this.closeDrawer.call(this)
             }).catch(err =>{
               window.console.log(err)
+            }).finally(()=>{
+              this.$store.commit('handleLoding')
             })
           }
         } else {
@@ -270,6 +277,7 @@ export default {
           }
         }
       }).then(() => {
+        this.$store.commit('handleLoding')
         request({
           url:"/device/delete",
           method:"post",
@@ -285,12 +293,11 @@ export default {
           this.getDeviceData.call(this)
         }).catch(err =>{
           window.console.log(err)
+        }).finally(()=>{
+          this.$store.commit('handleLoding')
         })
       }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '取消删除'
-        });       
+             
       });
     },
     editMsg(row){//修改设备信息
@@ -308,6 +315,7 @@ export default {
       this.submitType = 2
     },
     getDeviceData(){//请求设备数据
+      this.$store.commit('handleLoding')
       request({
         url:"/device/select",
         method:"post",
@@ -326,9 +334,12 @@ export default {
         this.allPage = allCount
       }).catch(e => {
         window.console.log(e)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
       })
     },
     getDeviceType(){//获取设备类型
+      this.$store.commit('handleLoding')
       request({
         url:"/device/type",
         method:"get",
@@ -336,6 +347,8 @@ export default {
         this.deviceType = res.data.respond.deviceTypes
       }).catch(err =>{
         window.console.log(err)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
       })
     },
     hanSiChange(val){

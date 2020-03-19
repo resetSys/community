@@ -11,6 +11,7 @@ const Home = () => import("views/base/Home.vue")
 const PerMan = () => import("views/staff/PerMan")
 const DivMan = () => import("views/staff/DivMan")
 const PosMan = () => import("views/staff/PosMan")
+const AccRecords = () => import("views/staff/AccRecords")
 // 考勤管理
 const CommonCheck = () => import("../views/check/checkRule/CheckMan.vue")
 const FreeCheck = () => import("../views/check/checkRule/FreeCheck.vue")
@@ -22,6 +23,8 @@ const AccountMan = () => import("../views/account/AccountMan.vue")
 //设备管理
 const FaceDevice = () => import("../views/device/Face.vue")
 const CarDevice = () => import("../views/device/Car.vue")
+//微信服务
+const Infopush = () => import("../views/extend/Infopush.vue")
 
 Vue.use(vueRouter)
 
@@ -49,6 +52,9 @@ let routes = [{
       path:"/home/posMan",
       component:PosMan
     },{
+      path:"/home/accRecords",
+      component:AccRecords
+    },{
       path:"/home/commonCheck",
       component:CommonCheck
     },{
@@ -72,6 +78,9 @@ let routes = [{
     },{
       path:"/home/carDevice",
       component:CarDevice
+    },{
+      path:"/home/infopush",
+      component:Infopush
     }
   ]
 }]

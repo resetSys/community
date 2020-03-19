@@ -48,19 +48,58 @@ function formatTime(timeStape,format){
   每个判断都会有返回值，当返回值不为false时处理
 */
 function handleRequest(data) {
+  // window.console.log(this)
   if (data.status === -1) {
-    this.$router.replace(data.respond)
-    window.console.log("跳转")
+    // window.console.log(this.$router.replace)
+    this.$router.replace(data.msg)
+    // window.console.log("跳转")
     return false
   } else if(data.status === 0) {
     this.$message({
-      message:data.respond,
-      type:"success"
+      message:data.msg,
+      type:"warning"
     })
     return false
   } else if(data.status === 1) {
-    window.console.log(data.respond)
+    return data.respond;
   }
 }
 
-export {transform,formatTime,handleRequest}
+/*
+  封装一个h:s转为分钟的工具方法
+  思路，将该字符串截取为数组，使用arr[1]*60+arr[2]
+*/
+function formatMinutes(time){
+  if (time) {
+    let arr = time.split(":");
+    let minute = arr[0]*60+parseInt(arr[1]);
+    return minute;
+  } else {
+    return 0
+  }
+  
+}
+
+/*
+  封装一个分钟转为h:s字符串的工具方法
+  思路，将该数值除以60，整数为小时数，再将该数字%60，余数为分钟数
+  最后进行拼接
+*/
+function formatHS(time){
+  if (time) {
+    let hour = Math.floor(time/60);//向下取整
+    let minute = time%60;
+    let hs = hour+ ":"+ minute;
+    return hs;
+  } else {
+    return null;
+  }
+}
+
+export {
+  transform,
+  formatTime,
+  handleRequest,
+  formatMinutes,
+  formatHS
+}

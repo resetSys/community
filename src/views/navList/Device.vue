@@ -10,9 +10,9 @@
           <router-link to="/home/faceDevice">
             <el-menu-item index="1-1">人脸识别设备</el-menu-item>
           </router-link>
-          <router-link to="/home/carDevice">
+          <!-- <router-link to="/home/carDevice">
             <el-menu-item index="1-2">车牌识别设备</el-menu-item>
-          </router-link>
+          </router-link> -->
         </el-menu-item-group>
       </el-submenu>
     </el-menu>

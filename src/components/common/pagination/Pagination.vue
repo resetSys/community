@@ -4,7 +4,7 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
       :current-page="currIndex"
-      :page-sizes="[20, 50, 100, 200]"
+      :page-sizes="[10, 30, 50]"
       :page-size="pageSize"
       layout="total, sizes, prev, pager, next, jumper"
       :total="allPage">
@@ -24,11 +24,20 @@ export default {
       default:0,
       required:true
     },
+    pageSize:{
+      type:Number,
+      default:10,
+      required:true
+    },
+    currIndex:{
+      type:Number,
+      default:1,
+      required:true
+    },
   },
   data() {
     return {
-      pageSize:20,
-      currIndex:1
+     
     }
   },
   components: {

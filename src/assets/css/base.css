@@ -71,3 +71,13 @@ html,body{
   padding: 0 20px;
   border-top: 1px solid #dcdcdc;
 }
+
+/* 设置loading的z-index */
+.el-loading-mask{
+  z-index: 3079 !important;
+}
+
+/* 设置link的字体大小 */
+.el-link{
+  font-size: 12px !important;
+}
