@@ -338,7 +338,7 @@ export default {
           
         // }
         this.addForm[key] = row[key]
-        window.console.log(row[key])
+        // window.console.log(row[key])
       }
       this.addDrawer = true
       this.submitType = 2
@@ -430,8 +430,7 @@ export default {
               this.checkedDevice[key].push(data.bind[key])
             }
           }
-          window.console.log("循环复制")
-
+          // window.console.log("循环复制")
         }
       }).catch(e => {
         window.console.log(e)

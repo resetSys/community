@@ -130,6 +130,7 @@ export default {
     //右键菜单展示
     openMenu(event,data){//右键触发
       //event,data,node,value
+      // window.console.log(event)
       this.currMenuItem = data
       /*
         获取界面中右键菜单，将位置设置为鼠标的event 中x和y，display设置为block
@@ -137,13 +138,13 @@ export default {
       if (this.contextMenu == null) {
         this.contextMenu = window.document.getElementById("context_menu")
       }
-      if (event.x <= 270) {
-        this.contextMenu.style.left = (event.x - 80)+"px"
+      if (event.pageX <= 270) {
+        this.contextMenu.style.left = (event.pageX - 80)+"px"
         window.console.log("x <= 70")
       } else {
-        this.contextMenu.style.left = (event.x - 280)+"px"
+        this.contextMenu.style.left = (event.pageX - 280)+"px"
       }
-      this.contextMenu.style.top = (event.y - 60)+"px"
+      this.contextMenu.style.top = (event.pageY - 60)+"px"
       /*
         contextMenu是相对于当前容器的，所以需要将header的高度和导航菜单的宽度减去
       */
@@ -215,7 +216,7 @@ export default {
         method:"post",
 
       }).then((res) => {
-        window.console.log(res)
+        // window.console.log(res)
         let respond = handleRequest.call(this,res.data)
         if (respond !== false) {
           this.treeData = respond

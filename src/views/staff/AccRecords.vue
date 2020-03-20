@@ -140,7 +140,7 @@ export default {
           end_time:this.searchForm.endTime
         }
       }).then((res) => {
-        window.console.log(res)
+        // window.console.log(res)
         let { list,allCount } = handleRequest.call(this,res.data)
         this.allPage = allCount
         this.records = []
@@ -188,7 +188,7 @@ export default {
         url:"/personnelRecord/selectDevice",
         method:"post",
       }).then((res) => {
-        window.console.log(res)
+        // window.console.log(res)
         this.devices = []
         res.data.respond.forEach(ele => {
           this.devices.push({

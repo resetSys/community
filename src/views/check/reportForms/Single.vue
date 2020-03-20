@@ -86,9 +86,10 @@
           label="操作">
           <template slot-scope="scope">
             <el-button style="color:var(--brand-color);" type="text" @click="handelGroup(scope.row)">关联考勤组</el-button>
-            <el-link 
+            <!-- <el-link 
               :href="'http://192.168.1.215:8080/wisdom_factorys/cowaReportForms/down?personnel_id='+scope.row.id"
-              target="_self" type="primary" icon="el-icon-download">下载考勤报表</el-link>
+              target="_self" type="primary" icon="el-icon-download">下载日报表</el-link> -->
+            <el-button style="color:var(--brand-color);" type="text" @click="vWRDialog = true">查看日报</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -115,6 +116,28 @@
         <el-button @click="groupDialog= false">取消</el-button>
       </div>
     </el-dialog>
+    <!-- 查看日报表 -->
+    <el-dialog custom-class="limit-dialog" 
+      :visible.sync="vWRDialog" 
+      width="40%" top="50vh"
+      :show-close="false"
+      title="考勤日报"
+      :close-on-press-escape="$store.state.closeOnPresEscape"
+      :close-on-click-modal="$store.state.closeOnClickModal">
+      <el-scrollbar style="height:80vh;">
+        <table border="1" cellpadding="10px" cellspacing="10px" bgcolor="#fff"
+          align="center" style="border-collapse:collapse;">
+          <caption>人物报表</caption>
+          <tr>
+            <th v-for="(item,index) in ['名称','章节','价格']" :key="index">{{item}}</th>
+          </tr>
+          <tr v-for="(item,index) in [{name:'html',section:'50章',price:288}]" :key="index">
+            <td v-for="item1 in item" :key="item1">{{item1}}</td>
+          </tr>
+        </table>
+      </el-scrollbar>
+      <el-button @click="vWRDialog = false">关闭</el-button>
+    </el-dialog>
   </div>
 </template>
 
@@ -133,7 +156,7 @@ export default {
     return {
       perData:[],
       //分页
-      pageSize:10,
+      pageSize:30,
       allPage:0,
       currPage:1,
       //搜索
@@ -149,6 +172,8 @@ export default {
       groups:[],//考勤组
       isSelectGroup:[],
       personId:null,
+      //查看周报
+      vWRDialog:false
     }
   },
   components: {
@@ -220,7 +245,7 @@ export default {
         url:"/cowaReportForms/selectCowaGroup",
         method:"post",
       }).then((res) => {
-        window.console.log(res)
+        // window.console.log(res)
         // this.branchs = res.data.respond
         this.groups = []
         res.data.respond.forEach(ele => {
@@ -311,5 +336,13 @@ export default {
 /* 滚动区域 */
 .scrollbar{
   height: calc(100% - 150px);
+}
+
+/* 报表样式 */
+table{
+  margin: 0 auto;
+}
+tr>th,tr>td{
+  padding: 2px 5px;
 }
 </style>
