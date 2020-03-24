@@ -3,31 +3,28 @@
     <el-container class="container">
       <el-aside width="70px" style="overflow:hidden;">
         <tab-control>
-          <div style="width:100%;height:30px;text-align:center;margin:10px 0;">
-            <img style="height:100%;" src="~/assets/imgs/home/logo.png" alt="">
-          </div>
-          <tab-control-item @click.native="tabConClick('staff')" 
-            :class="{'tabConActive':navName == 'staff','is-disabled':isDisabled('staff')}">
+          <tab-control-item @click.native="tabConClick(10,'staff')" 
+            :class="{'tabConActive':navName == 'staff','is-disabled':isDisabled(10)}">
             <img slot="img" src="~assets/imgs/tabControl/staff.png" alt="">
             <p slot="title">职工管理</p>
           </tab-control-item>
-          <tab-control-item @click.native="tabConClick('check')" 
-            :class="{'tabConActive':navName == 'check','is-disabled':isDisabled('check')}">
+          <tab-control-item @click.native="tabConClick(20,'check')" 
+            :class="{'tabConActive':navName == 'check','is-disabled':isDisabled(20)}">
             <img slot="img" src="~assets/imgs/tabControl/check.png" alt="">
             <p slot="title">考勤管理</p>
           </tab-control-item>
-          <tab-control-item @click.native="tabConClick('account')" 
-            :class="{'tabConActive':navName == 'account','is-disabled':isDisabled('account')}">
+          <tab-control-item @click.native="tabConClick(50,'account')" 
+            :class="{'tabConActive':navName == 'account','is-disabled':isDisabled(50)}">
             <img slot="img" src="~assets/imgs/tabControl/acc.png" alt="">
             <p slot="title">账户管理</p>
           </tab-control-item>
-          <tab-control-item @click.native="tabConClick('device')"
-            :class="{'tabConActive':navName == 'device','is-disabled':isDisabled('device')}">
+          <tab-control-item @click.native="tabConClick(40,'device')"
+            :class="{'tabConActive':navName == 'device','is-disabled':isDisabled(40)}">
             <img slot="img" src="~assets/imgs/tabControl/equi.png" alt="">
             <p slot="title">设备管理</p>
           </tab-control-item>
-          <tab-control-item @click.native="tabConClick('wechat')"
-            :class="{'tabConActive':navName == 'wechat','is-disabled':isDisabled('wechat')}">
+          <tab-control-item @click.native="tabConClick(30,'wechat')"
+            :class="{'tabConActive':navName == 'wechat','is-disabled':isDisabled(30)}">
             <img slot="img" src="~assets/imgs/tabControl/weiCart.png" alt="">
             <p slot="title">微信服务</p>
           </tab-control-item>
@@ -52,11 +49,11 @@
       </el-container>
     </el-container>
     <!-- 自定义右键菜单 -->
-    
   </div>
 </template>
 
 <script>
+//组件
 import tabControl from "@/components/common/tabControl/TabControl"
 import tabControlItem from "@/components/common/tabControl/TabControlItem"
 import staff from "views/navList/Staff"
@@ -64,11 +61,16 @@ import check from "views/navList/Check"
 import account from "views/navList/Account"
 import wechat from "views/navList/Wechat"
 import device from "views/navList/Device"
-
+//工具
 import hide from "components/common/toggle/Hide"
 import show from "components/common/toggle/Show"
 
 import headCom from "./children/HeadCom"
+//请求
+import { request } from "@/network/request";
+//工具类
+import { handleRequest } from "@/utils";
+
 export default {
   name: 'baseView',
   data() {
@@ -76,7 +78,7 @@ export default {
       navName:'staff',
       navAside:true,
       navWidth:200,
-      limits:['staff','check','account','device','wechat'],
+      limits:[10],
     }
   },
   components: {
@@ -104,8 +106,8 @@ export default {
       // window.console.log(value,this.limits.indexOf(value))
       return this.limits.indexOf(value) === -1
     },
-    tabConClick(comName){
-      let result = this.limits.indexOf(comName)
+    tabConClick(num,comName){
+      let result = this.limits.indexOf(num)
       if (result!== -1) {
         this.navName = comName;
       } else {
@@ -122,7 +124,7 @@ export default {
     showClick(boo){
       this.navAside = boo;
       this.navWidth = 200;
-    }
+    },
     /*
       设置按钮不可点击思路:
       判断后台发送的权限数组中是否有该条权限信息
@@ -132,7 +134,25 @@ export default {
       如果有的话就将这个按钮disabled掉，如果没有的话正常显示
       后端也必须做一些限制，不发送该用户没有的权限
     */
+    getLimit(){
+      request({
+        url:"/account/selectIntPower",
+        moethod:"post",
+      }).then((res) => {
+        // window.console.log(res)
+        let respond = handleRequest.call(this,res.data)
+        if (respond !== false) {
+          this.limits = respond;
+        }
+      }).catch((err) => {
+        window.console.log(err)
+        
+      });
+    },
   },
+  mounted(){
+    this.getLimit.call(this)
+  }
 }
 </script>
 

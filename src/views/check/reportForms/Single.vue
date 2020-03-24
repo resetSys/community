@@ -3,7 +3,7 @@
     <title-bar>
       <span slot="title">考勤报表</span>
       <span slot="control">
-        <el-button type="primary" size="small">新增</el-button>
+        <!-- <el-button type="primary" size="small">新增</el-button> -->
       </span>
     </title-bar>
     <search-bar>
@@ -48,18 +48,21 @@
           prop="id"
           align="center"
           show-overflow-tooltip
+          width="100"
           label="工号">
         </el-table-column>
         <el-table-column
           prop="name"
           align="center"
           show-overflow-tooltip
+          width="100"
           label="姓名">
         </el-table-column>
         <el-table-column
           prop="sex"
           align="center"
           show-overflow-tooltip
+          width="100"
           label="性别">
         </el-table-column>
         <el-table-column
@@ -89,7 +92,9 @@
             <!-- <el-link 
               :href="'http://192.168.1.215:8080/wisdom_factorys/cowaReportForms/down?personnel_id='+scope.row.id"
               target="_self" type="primary" icon="el-icon-download">下载日报表</el-link> -->
-            <el-button style="color:var(--brand-color);" type="text" @click="vWRDialog = true">查看日报</el-button>
+            <el-button style="color:var(--brand-color);" type="text" 
+              @click="handleViewDatily(scope.row)" v-show="scope.row.groupId">查看报表</el-button>
+            <!-- <el-button style="color:var(--brand-color);" type="text">周期报表</el-button> -->
           </template>
         </el-table-column>
       </el-table>
@@ -119,24 +124,39 @@
     <!-- 查看日报表 -->
     <el-dialog custom-class="limit-dialog" 
       :visible.sync="vWRDialog" 
-      width="40%" top="50vh"
+      width="90%" top="50vh"
       :show-close="false"
       title="考勤日报"
       :close-on-press-escape="$store.state.closeOnPresEscape"
       :close-on-click-modal="$store.state.closeOnClickModal">
-      <el-scrollbar style="height:80vh;">
-        <table border="1" cellpadding="10px" cellspacing="10px" bgcolor="#fff"
-          align="center" style="border-collapse:collapse;">
-          <caption>人物报表</caption>
-          <tr>
-            <th v-for="(item,index) in ['名称','章节','价格']" :key="index">{{item}}</th>
-          </tr>
-          <tr v-for="(item,index) in [{name:'html',section:'50章',price:288}]" :key="index">
-            <td v-for="item1 in item" :key="item1">{{item1}}</td>
-          </tr>
-        </table>
-      </el-scrollbar>
-      <el-button @click="vWRDialog = false">关闭</el-button>
+      <el-container style="height:70vh">
+        <el-aside width="100px" style="overflow:hidden;">
+          <ul class="control">
+            <li v-for="(item,index) in dailyData.metre" :key="index+'t'">
+              <el-button type="text" @click="choseForm(index)">{{item}}</el-button>
+            </li>
+          </ul>
+        </el-aside>
+        <el-main style="padding:0">
+          <el-scrollbar style="height:100%;">
+            <table border="1" cellpadding="10px" cellspacing="10px" bgcolor="#fff"
+              align="center" style="border-collapse:collapse;">
+              <!-- <caption>人物报表</caption> -->
+              <!-- <tr>
+                <th v-for="(item,index) in dailyData.metre" :key="index+'a'">{{item}}</th>
+              </tr> -->
+              <tr v-for="(group,index) in dailyData.data[formIndex]" :key="index+'b'">
+                <td v-for="(item,index) in group" :key="index+'c'">{{item}}</td>
+              </tr>
+            </table>
+          </el-scrollbar>
+        </el-main>
+      </el-container>
+      <span slot="footer">
+        <el-button type="primary" @click="download">一键导出</el-button>
+        <el-button @click="vWRDialog = false">关闭</el-button>
+      </span>
+      
     </el-dialog>
   </div>
 </template>
@@ -173,7 +193,14 @@ export default {
       isSelectGroup:[],
       personId:null,
       //查看周报
-      vWRDialog:false
+      vWRDialog:false,
+      dailyData:{
+        data:[],
+        metre:[]
+      },
+      formIndex:0,
+      formsData:null,
+      personInfo:null
     }
   },
   components: {
@@ -274,9 +301,27 @@ export default {
     },
 
     //表格中操作
-    download(){//下载考勤表
-    
+    download(){//导出报表
+      this.$store.commit('handleLoding')
+      request({
+        url:"cowaReportForms/exportTable",
+        method:"post",
+        data:{
+          personnel_id:this.personInfo.id,
+          name:this.personInfo.name,
+          data:this.formsData
+        }
+      }).then(res => {
+        // window.console.log(res)
+        window.location.href = res.data;
+      }).catch(e => {
+        window.console.log(e);
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      })
     },
+
+    //分页操作
     handelGroup(row){//关联考勤组
       this.groupDialog = true
       // window.console.log(row.groupId)
@@ -317,7 +362,54 @@ export default {
       }
     },
 
-
+    //查看日报
+    handleViewDatily(row){//点击查看日报按钮
+      if (row.groupId == 0 || row.groupId == undefined || row.groupId == null) {
+        this.$message({
+          message: '该人员未绑定考勤组',
+          type: 'warning'
+        });
+      } else {
+        this.vWRDialog = true;
+        this.personInfo = row;//将该人员信息储存
+        this.getDaily.call(this,row.id)
+      }
+    },
+    getDaily(id){//获取报表数据
+      this.$store.commit('handleLoding')
+      request({
+        url:"cowaReportForms/selectForms",
+        method:"post",
+        data:{
+          personnel_id:id
+        }
+      }).then(res => {
+        // window.console.log(res)
+        /*
+          思路:
+          将数据进行处理
+          title和data分开
+          注意顺序
+        */
+        this.formsData = res.data;
+        this.dailyData.metre = [];
+        this.dailyData.data = [];
+        this.formIndex = 0;
+        for (const key in res.data) {
+          if (res.data.hasOwnProperty(key)) {
+            this.dailyData.metre.push(key);
+            this.dailyData.data.push(res.data[key]);
+          }
+        }
+      }).catch(e => {
+        window.console.log(e);
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      })
+    },
+    choseForm(index){
+      this.formIndex = index
+    }
   },
   mounted(){
     this.getPersons.call(this)
@@ -339,10 +431,15 @@ export default {
 }
 
 /* 报表样式 */
+/* 报表选择 */
+.control>li{
+  text-align: center;
+}
 table{
   margin: 0 auto;
 }
 tr>th,tr>td{
   padding: 2px 5px;
+  text-align: center;
 }
 </style>

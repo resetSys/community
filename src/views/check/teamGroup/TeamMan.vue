@@ -287,7 +287,7 @@ export default {
                 cowa_group_id:this.addForm.id
               }
             }).then(res => {
-              window.console.log(res)
+              // window.console.log(res)
               this.$message({
                 message: res.data.respond,
                 type: 'success'
@@ -509,7 +509,7 @@ export default {
           cowa_group_period_id:row.id,
         }
       }).then((res) => {
-        window.console.log(res)
+        // window.console.log(res)
         let { dates } = res.data.respond;
         /*
           将字符串转换为数字类型数组

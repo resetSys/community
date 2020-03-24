@@ -254,7 +254,7 @@ export default {
                   remarks:this.addForm.des
                 }
               }).then(res => {
-                window.console.log(res)
+                // window.console.log(res)
                 this.$message({
                   message: res.data.respond,
                   type: 'success'

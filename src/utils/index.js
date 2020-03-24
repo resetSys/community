@@ -87,12 +87,12 @@ function formatMinutes(time){
 */
 function formatHS(time){
   if (time) {
-    let hour = Math.floor(time/60);//向下取整
-    let minute = time%60;
+    let hour = Math.floor(time/60)>10? Math.floor(time/60):'0'+Math.floor(time/60);//向下取整
+    let minute = time%60 >10? time%60: '0' + time%60;
     let hs = hour+ ":"+ minute;
     return hs;
   } else {
-    return null;
+    return 0;
   }
 }
 

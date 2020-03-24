@@ -276,7 +276,7 @@ export default {
                 remarks:this.branchForm.remarks
               }
             }).then((res) => {
-              window.console.log(res)
+              // window.console.log(res)
               /*
                 注册成功后关闭注册框
                 刷新界面数据
@@ -335,7 +335,7 @@ export default {
             branch_id:row.branch_id
           }
         }).then((res) => {
-          window.console.log(res)
+          // window.console.log(res)
           this.$message({
             message: res.data.respond,
             type: 'success'
@@ -368,7 +368,7 @@ export default {
               remarks:this.branchForm.remarks
             }
           }).then((res) => {
-            window.console.log(res)
+            // window.console.log(res)
             /*
               注册成功后关闭注册框
               刷新界面数据

@@ -81,3 +81,8 @@ html,body{
 .el-link{
   font-size: 12px !important;
 }
+
+/*设置dialog的样式*/
+.el-dialog__footer{
+  text-align: center !important;
+}

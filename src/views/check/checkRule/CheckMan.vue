@@ -101,63 +101,51 @@
             prop="start"
             align="center"
             show-overflow-tooltip
-            label="上班打卡开始">
+            label="上班时间">
           </el-table-column>
           <el-table-column
-            prop="end"
+            prop="beforeTime"
             align="center"
-            label="打卡结束">
-          </el-table-column>
-          <el-table-column
-            prop="isMorrow"
-            align="center"
-            label="是否跨天">
+            label="签到有效时长(上班前)">
           </el-table-column>
           <el-table-column
             prop="lateTime"
             align="center"
-            label="可迟到">
+            label="签到有效时长(上班后)">
           </el-table-column>
           <el-table-column
             prop="lateTimeMax"
             align="center"
-            label="最大迟到">
+            label="宽容时长">
           </el-table-column>
+
           <el-table-column
             prop="printStart"
             align="center"
-            label="下班打卡开始">
-          </el-table-column>
-          <el-table-column
-            prop="pSIsMorrow"
-            align="center"
-            label="打卡开始是否跨天">
-          </el-table-column>
-          <el-table-column
-            prop="printEnd"
-            align="center"
-            label="下班打卡结束">
-          </el-table-column>
-          <el-table-column
-            prop="pSIsMorrow"
-            align="center"
-            label="打卡结束是否跨天">
+            label="下班时间">
           </el-table-column>
           <el-table-column
             prop="earlyPrintStart"
             align="center"
-            label="可早退时长">
+            label="签到有效时长(下班前)">
           </el-table-column>
           <el-table-column
-            prop="earlyPrintStartMax"
+            prop="printEnd"
             align="center"
-            label="最大早退时长">
+            label="签到有效时长(下班后)">
           </el-table-column>
           <el-table-column
-            prop="manHour"
+            prop="pEIsMorrow"
             align="center"
-            label="工时">
+            :formatter="changeMorrow"
+            label="是否跨天">
           </el-table-column>
+          <el-table-column
+            prop="earlyPrint"
+            align="center"
+            label="宽容时长">
+          </el-table-column>
+          
           <el-table-column
             align="center"
             label="操作">
@@ -183,75 +171,71 @@
     <!-- 新增、编辑子集 -->
     <el-dialog custom-class="limit-dialog" 
       :visible.sync="addRuleDialog" 
-      width="40%" :top="$store.state.dialogTop"
+      width="50%" :top="$store.state.dialogTop"
       style="overflow:hidden"
       :show-close="false"
       :close-on-press-escape="$store.state.closeOnPresEscape"
       :close-on-click-modal="$store.state.closeOnClickModal">
       <el-scrollbar style="height:40vh;">
-        <el-form :model="addRuleForm" :rules="addRuleFormRule"
+        <el-form :model="addRuleForm" :rules="addRuleFormRule" inline
           ref="addRuleForm" label-width="5vw" label-position="top">
 
           <el-form-item label="名称" prop="name">
-            <el-input class="rule-input" v-model="addRuleForm.name"></el-input>
+            <el-input class="rule-input" v-model="addRuleForm.name"
+              placeholder="考勤名称"></el-input>
           </el-form-item>
-
           <el-form-item label="上班打卡时间" prop="start">
-             <el-time-picker
-                class="rule-input"
-                placeholder="打卡开始时间"
-                value-format="H:m"
-                v-model="addRuleForm.start">
-              </el-time-picker>
-
-              <el-input class="rule-input" v-model="addRuleForm.end"
-              placeholder="提前打卡时长(分)"></el-input>
-
-              <el-select class="rule-select" v-model="addRuleForm.isMorrow" placeholder="是否跨天">
-                <el-option :value="false" label="当日"></el-option>
-                <el-option :value="true" label="次日"></el-option>
-              </el-select>
+            <el-time-picker
+              class="rule-input"
+              placeholder="上班打卡时间"
+              value-format="H:m"
+              v-model="addRuleForm.start">
+            </el-time-picker>
           </el-form-item>
 
-          <el-form-item prop="lateTime">
-            <el-input class="rule-input" v-model="addRuleForm.end"
-              placeholder="打卡结束时长(分)"></el-input>
+          <el-form-item label="迟到宽容时长" prop="lateTimeMax">
             <el-input class="rule-input" v-model="addRuleForm.lateTimeMax"
-              placeholder="迟到宽容时长(分)"></el-input>
+              placeholder="迟到宽容时长"></el-input>
           </el-form-item>
 
+          <el-form-item label="上班前打卡有效时长" prop="beforeTime">
+            <el-input class="rule-input" v-model="addRuleForm.beforeTime"
+              placeholder="上班前打卡有效时长(分)"></el-input>
+          </el-form-item>
+
+          <el-form-item label="上班后打卡有效时长" prop="lateTime">
+            <el-input class="rule-input" v-model="addRuleForm.lateTime"
+              placeholder="上班后打卡有效时长(分)"></el-input>
+          </el-form-item>
           <el-form-item label="下班打卡时间" prop="printStart">
-             <el-time-picker
-                class="rule-input"
-                placeholder="打卡开始时间"
-                value-format="H:m"
-                v-model="addRuleForm.printStart">
-              </el-time-picker>
-              <el-input class="rule-input" v-model="addRuleForm.earlyPrintStart"
-                placeholder="提前打卡时长(分)"></el-input>
-              <el-select class="rule-select" v-model="addRuleForm.pSIsMorrow" placeholder="是否跨天">
-                <el-option :value="false" label="当日"></el-option>
-                <el-option :value="true" label="次日"></el-option>
-              </el-select>
+            <el-time-picker
+              class="rule-input"
+              placeholder="下班打卡时间"
+              value-format="H:m"
+              v-model="addRuleForm.printStart">
+            </el-time-picker>
           </el-form-item>
 
-          <el-form-item prop="printEnd">
-            <!-- <el-time-picker
-              class="rule-input"
-              placeholder="早退宽容时间"
-              value-format="H:m"
-              v-model="addRuleForm.earlyPrintStart">
-            </el-time-picker> -->
+          <el-form-item label="允许早退时长" prop="earlyPrint">
+            <el-input class="rule-input" v-model="addRuleForm.earlyPrint"
+              placeholder="允许早退时长(分)"></el-input>
+          </el-form-item>
+
+          <el-form-item label="下班打卡是否跨天" prop="pEIsMorrow">
+            <el-select class="rule-select" v-model="addRuleForm.pEIsMorrow" placeholder="请选择">
+              <el-option :value="false" label="当日"></el-option>
+              <el-option :value="true" label="次日"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="下班前打卡有效时长" prop="earlyPrintStart">
+            <el-input class="rule-input" v-model="addRuleForm.earlyPrintStart"
+              placeholder="下班前打卡有效时长(分)"></el-input>
+          </el-form-item>
+
+          <el-form-item label="下班后打卡有效时长" prop="printEnd">
             <el-input class="rule-input" v-model="addRuleForm.printEnd"
-              placeholder="结束打卡时长(分)"></el-input>
-            <!-- <el-time-picker
-              class="rule-input"
-              placeholder="最大早退时间"
-              value-format="H:m"
-              v-model="addRuleForm.earlyPrintStartMax">
-            </el-time-picker> -->
-            <el-input class="rule-input" v-model="addRuleForm.earlyPrintStartMax"
-              placeholder="早退打卡时长(分)"></el-input>
+              placeholder="下班后打卡有效时长(分)"></el-input>
           </el-form-item>
 
         </el-form>
@@ -303,6 +287,14 @@ import { handleRequest,formatMinutes,formatHS } from "@/utils";
 export default {
   name: 'checkMan',
   data() {
+     var validateTime = (rule, value, callback) => {
+      let reg = /^[0-9]{0,4}$/;
+      if(reg.test(value)){
+        callback();
+      } else {
+        callback(new Error('不能为空且不超过4位'));
+      }
+    };
     return {
       fileData:[],
       addForm:{
@@ -322,37 +314,53 @@ export default {
       addDrawer:false,
       ruleTable:[],
       addRuleForm:{
-        parentId:null,
-        id:null,
-        name:'',
-        start:null,
-        end:null,
+        parentId:null,//集合id
+        id:null,//规则id
+        name:"",//规则名称
+        start:null,//打卡时间
+        beforeTime:null,//打卡前时长
+        lateTime:null,//打卡后时长
+        lateTimeMax:null,//允许迟到时间
 
-        isMorrow:false,
-        lateTime:null,
-        lateTimeMax:null,
-        printStart:null,
-        printEnd:null,
-
-        pSIsMorrow:false,
-        pEIsMorrow:false,
-        earlyPrintStart:null,
-        earlyPrintStartMax:null,
-        manHour:null,
-
+        printStart:null,//下班打卡时间
+        printEnd:null,//打卡后时长
+        pEIsMorrow:false,//是否跨天
+        earlyPrintStart:null,//打卡前时长
+        earlyPrint:null,//早退时长
       },
-      parentId:null,//存储考勤id
       addRuleFormRule:{
         name:[
           {required: true, message: '请输入名称', trigger: 'blur'}
         ],
-        start:[],
-        lateTime:[],
-        printStart:[],
-        printEnd:[],
-        earlyPrintStart:[],
-        manHour:[]
+        start:[
+          {required: true, message: '请选择上班时间', trigger: 'blur'}
+        ],
+        beforeTime:[
+          { validator: validateTime, trigger: 'blur' },
+        ],
+        lateTime:[
+          { validator: validateTime, trigger: 'blur' },
+        ],
+        lateTimeMax:[
+          { validator: validateTime, trigger: 'blur' },
+        ],
+        printStart:[
+          {required: true, message: '请选择下班时间', trigger: 'blur'}
+        ],
+        printEnd:[
+          { validator: validateTime, trigger: 'blur' },
+        ],
+        pEIsMorrow:[
+          {required: true, message: '请选择是否跨天', trigger: 'blur'}
+        ],
+        earlyPrintStart:[
+          { validator: validateTime, trigger: 'blur' },
+        ],
+        earlyPrint:[
+          { validator: validateTime, trigger: 'blur' },
+        ]
       },
+      parentId:null,//存储考勤id
       lookFileDialog:false,
       addRuleDialog:false,
       //分页
@@ -461,21 +469,18 @@ export default {
               data:{
                 cowa_id:this.parentId,
                 cowa_rules_name:this.addRuleForm.name,
-                begin_start:formatMinutes(this.addRuleForm.start),
-                begin_end:formatMinutes(this.addRuleForm.end),
-                begin_end_nextDay:this.addRuleForm.isMorrow? true:false,
-                begin_late_allow:formatMinutes(this.addRuleForm.lateTime),
-                begin_late_max:formatMinutes(this.addRuleForm.lateTimeMax),
-                closed_start:formatMinutes(this.addRuleForm.printStart),
-                closed_end:formatMinutes(this.addRuleForm.printEnd),
-                closed_start_nextDay:this.addRuleForm.pSIsMorrow? true:false,
-                closed_end_nextDay:this.addRuleForm.pEIsMorrow? true:false,
-                closed_early_allow:formatMinutes(this.addRuleForm.earlyPrintStart),
-                closed_early_max:formatMinutes(this.addRuleForm.earlyPrintStartMax),
-                man_hour:formatMinutes(this.addRuleForm.manHour)
+                on_duty:formatMinutes(this.addRuleForm.start),
+                on_duty_before:parseInt(this.addRuleForm.beforeTime),
+                on_duty_after:parseInt(this.addRuleForm.lateTime),
+                on_duty_allow:parseInt(this.addRuleForm.lateTimeMax),
+                un_duty:formatMinutes(this.addRuleForm.printStart),
+                un_duty_after:parseInt(this.addRuleForm.printEnd),
+                un_duty_next:parseInt(this.addRuleForm.pEIsMorrow),
+                un_duty_before:parseInt(this.addRuleForm.earlyPrintStart),
+                un_duty_allow:parseInt(this.addRuleForm.earlyPrint)
               },
             }).then(res =>{
-              window.console.log(res)
+              // window.console.log(res)
               let data = handleRequest(res.data);
               this.$message({
                 message:data,
@@ -495,21 +500,18 @@ export default {
               method:"post",
               data:{
                 cowa_rules_id:this.addRuleForm.id,
+                cowa_id:this.parentId,
                 cowa_rules_name:this.addRuleForm.name,
-                begin_start:formatMinutes(this.addRuleForm.start),
-                begin_end:formatMinutes(this.addRuleForm.end),
-                begin_end_nextDay:this.addRuleForm.isMorrow? true:false,
-                begin_late_allow:formatMinutes(this.addRuleForm.lateTime),
-                begin_late_max:formatMinutes(this.addRuleForm.lateTimeMax),
-                closed_start:formatMinutes(this.addRuleForm.printStart),
-                closed_end:formatMinutes(this.addRuleForm.printEnd),
-                closed_start_nextDay:this.addRuleForm.pSIsMorrow? true:false,
-                closed_end_nextDay:this.addRuleForm.pEIsMorrow? true:false,
-                closed_early_allow:formatMinutes(this.addRuleForm.earlyPrintStart),
-                closed_early_max:formatMinutes(this.addRuleForm.earlyPrintStartMax),
-                man_hour:formatMinutes(this.addRuleForm.manHour)
+                on_duty:formatMinutes(this.addRuleForm.start),
+                on_duty_before:parseInt(this.addRuleForm.beforeTime),
+                on_duty_after:parseInt(this.addRuleForm.lateTime),
+                on_duty_allow:parseInt(this.addRuleForm.lateTimeMax),
+                un_duty:formatMinutes(this.addRuleForm.printStart),
+                un_duty_after:parseInt(this.addRuleForm.printEnd),
+                un_duty_next:parseInt(this.addRuleForm.pEIsMorrow),
+                un_duty_before:parseInt(this.addRuleForm.earlyPrintStart),
+                un_duty_allow:parseInt(this.addRuleForm.earlyPrint)
               },
-              
             }).then(res =>{
               let data = handleRequest(res.data);
               this.$message({
@@ -707,24 +709,21 @@ export default {
         this.ruleTable = []
         res.data.respond.forEach(ele => {
           this.ruleTable.push({
-            parentId:ele.cowa_id,
-            id:ele.cowa_rules_id,
-            name:ele.cowa_rules_name,
-            start:formatHS(ele.begin_start),
-            end:formatHS(ele.begin_end),
-            isMorrow:ele.begin_end_nextDay? '是': '否',
-            lateTime:formatHS(ele.begin_late_allow),
-            lateTimeMax:formatHS(ele.begin_late_max),
-            printStart:formatHS(ele.closed_start),
-            printEnd:formatHS(ele.closed_end),
-            pSIsMorrow:ele.closed_start_nextDay? '是': '否',
-            pEIsMorrow:ele.closed_end_nextDay? '是': '否',
-            earlyPrintStart:formatHS(ele.closed_early_allow),
-            earlyPrintStartMax:formatHS(ele.closed_early_max),
-            manHour:formatHS(ele.man_hour)
+            parentId:ele.cowa_id,//集合id
+            id:ele.cowa_rules_id,//规则id
+            name:ele.cowa_rules_name,//规则名称
+            start:formatHS(ele.on_duty),//打卡时间
+            beforeTime:ele.on_duty_before,//打卡前时长
+            lateTime:ele.on_duty_after,//打卡后时长
+            lateTimeMax:ele.on_duty_allow,//允许迟到时间
+
+            printStart:formatHS(ele.un_duty),//下班打卡时间
+            printEnd:ele.un_duty_after,//打卡后时长
+            pEIsMorrow:ele.un_duty_next,//是否跨天
+            earlyPrintStart:ele.un_duty_before,//打卡前时长
+            earlyPrint:ele.un_duty_allow,//早退时长
           })
         });
-        
       }).catch(err =>{
         window.console.log(err)
       }).finally(()=>{
@@ -764,6 +763,11 @@ export default {
         window.console.log(err)
       });
     },
+
+    //表格格式
+    changeMorrow(row){
+      return row.pEIsMorrow? '是': '否';
+    }
   },
   mounted(){
     this.getCheckFile.call(this)
@@ -795,7 +799,7 @@ export default {
   width: 200px;
 }
 .rule-select{
-  width: 100px;
+  width: 200px;
 }
 /* 绑定设备title */
 .bind-title{

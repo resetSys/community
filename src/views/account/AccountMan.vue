@@ -79,10 +79,12 @@
               <el-input v-model="addForm.user" placeholder="中英文长度不超过40"></el-input>
             </el-form-item>
             <el-form-item label="密码" prop="pass">
-              <el-input v-model="addForm.pass" type="password" placeholder="不能包含中文和特殊符号"></el-input>
+              <el-input v-model="addForm.pass" type="password" show-password
+                placeholder="不能包含中文和特殊符号"></el-input>
             </el-form-item>
             <el-form-item label="确认密码" prop="confirmPass">
-              <el-input v-model="addForm.confirmPass" type="password" placeholder="请再次输入密码"></el-input>
+              <el-input v-model="addForm.confirmPass" type="password" show-password
+                placeholder="请再次输入密码"></el-input>
             </el-form-item>
           </el-form>
         </div>
@@ -188,7 +190,7 @@ export default {
             } else {
               callback()
             }
-          }}
+          },trigger:'blur'}
         ],
         confirmPass:[
           {required: true, message: '请再次输入密码', trigger: 'blur'},

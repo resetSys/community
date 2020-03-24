@@ -122,7 +122,7 @@ export default {
           url:"/weiXin/sel",
           method:"post",
       }).then(res => {
-        window.console.log(res)
+        // window.console.log(res)
         for (const key in this.addForm) {
           this.addForm[key] = res.data.respond[key]
         }

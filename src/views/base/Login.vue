@@ -26,6 +26,7 @@
         </el-form>
       </div>
     </div>
+    <footer class="footer"><a href="javascript:void(0)">郑州和光电子科技有限公司</a></footer>
   </div>
 </template>
 
@@ -176,5 +177,20 @@ export default {
   /* border: 1px solid red; */
   transition: border .3s;
   transition: color .3s;
+}
+
+/* footer */
+.footer{
+  /* align-self: stretch; */
+  position: absolute;
+  bottom: 30px;
+  bottom: 30px;
+}
+.footer>a{
+  font-size: 12px;
+  color: #000;
+}
+.footer>a:hover{
+  color: #409EFF;
 }
 </style>
