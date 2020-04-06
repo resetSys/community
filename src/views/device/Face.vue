@@ -63,6 +63,7 @@
           <template slot-scope="scope">
             <el-button style="color:#409EFF;" type="text" @click="editMsg(scope.row)">编辑</el-button>
             <el-button style="color:#F56C6C;" type="text" @click="delMsg(scope.row)">删除</el-button>
+            <el-button style="color:#409EFF;" type="text" @click="handleData(scope.row)">从设备导入数据</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -119,9 +120,9 @@ import titleBar from "components/common/titleBar/TitleBar"
 import searchBar from "components/common/searchBar/SearchBar"
 import pagination from "components/common/pagination/Pagination"
 //请求
-import {request} from "@/network/request"
+import { request } from "@/network/request"
 //工具方法
-import { formatTime } from "@/utils";
+import { formatTime,handleRequest } from "@/utils";
 
 export default {
   name: 'face',
@@ -265,7 +266,7 @@ export default {
       }
       this.addDrawer = false
     },
-    delMsg(row){//删除账户
+    delMsg(row){//删除设备
       this.$prompt('您确定要删除该设备吗?删除设备的同时将会删除设备的相关的考勤和人员出入的记录，输入“确定”删除该设备', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -362,6 +363,50 @@ export default {
       this.getDeviceData.call(this)
 
     },
+
+    //表格操作
+    handleData(row){//导出设备数据
+      // window.console.log(row)
+      this.$prompt('此功能将设备中的数据和本地数据同步（此功能处于测试阶段，非特殊情况，请勿使用）,输入确定同步数据', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputValidator:(value)=>{
+          if (value === "确定") {
+            return true
+          } else {
+            return "输入“确定”执行操作"
+          }
+        }
+      }).then(() => {
+        this.$store.commit('handleLoding')
+        request({
+          url:"/device/deviceExport",
+          method:"post",
+          data:{
+            device_id:row.device_id
+          }
+        }).then((res) =>{
+          let respond = handleRequest.call(this,res.data);
+          if (respond !== false) {
+            this.$message({
+              message: respond,
+              type: 'success'
+            });
+          }
+          //刷新数据
+          // this.getDeviceData.call(this);
+        }).catch(err =>{
+          window.console.log(err);
+        }).finally(()=>{
+          this.$store.commit('handleLoding');
+        })
+      }).catch(() => {
+             
+      });
+      
+    },
+
+
     //转换表格数据格式
     formatTime(row){
       // window.console.log(row, column, cellValue, index)

@@ -571,7 +571,9 @@ export default {
     },
     deleteInfo(row){//删除
       // window.console.log(row)
-      this.$confirm('确认删除吗?', '提示', {
+      this.$confirm(`该操作将会删除人员信息以及人员出入记录，
+      将会影响考勤的生成，请确保该人员无需生成考勤报表！该操作不会删除其在设备的权限，
+      在删除人员前请确保删除其权限！`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'

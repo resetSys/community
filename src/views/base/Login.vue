@@ -1,6 +1,6 @@
 <template>
   <div id="login" ref="login">
-    <div class="login-title">考勤管理系统</div>
+    <div class="login-title">智慧园区管理系统</div>
     <div class="form-wrap">
       <div class="f-w-content">
         <el-form :model="loginForm" :rules="loginFormRules" ref="loginForm">
@@ -26,7 +26,7 @@
         </el-form>
       </div>
     </div>
-    <footer class="footer"><a href="javascript:void(0)">郑州和光电子科技有限公司</a></footer>
+    <footer class="footer"><a href="https://www.heguangtech.com/" target="_blank">郑州和光电子科技有限公司</a></footer>
   </div>
 </template>
 

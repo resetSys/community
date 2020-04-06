@@ -139,7 +139,7 @@ export default {
         url:"/account/selectIntPower",
         moethod:"post",
       }).then((res) => {
-        // window.console.log(res)
+        window.console.log(res)
         let respond = handleRequest.call(this,res.data)
         if (respond !== false) {
           this.limits = respond;
