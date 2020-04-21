@@ -18,13 +18,13 @@
         size="small"
         stripe
         empty-text="暂无数据">
-        <el-table-column
+        <!-- <el-table-column
           prop="device_id"
           align="center"
           label="设备ID"
           show-overflow-tooltip
           width="100">
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column
           prop="device_name"
           align="center"
@@ -38,24 +38,34 @@
           label="设备IP">
         </el-table-column>
         <el-table-column
+          prop="pass"
+          align="center"
+          show-overflow-tooltip
+          label="密码">
+        </el-table-column>
+        <el-table-column
+          prop="port"
+          align="center"
+          show-overflow-tooltip
+          label="端口">
+        </el-table-column>
+        <el-table-column
           prop="location"
           align="center"
           show-overflow-tooltip
           label="设备位置">
         </el-table-column>
         <el-table-column
-          prop="time"
+          prop="typeStr"
           align="center"
-          :formatter="formatTime"
           show-overflow-tooltip
-          label="时间">
+          label="类型">
         </el-table-column>
         <el-table-column
-          prop="typeNumber"
+          prop="remarks"
           align="center"
           show-overflow-tooltip
-          :formatter="formatType"
-          label="类型">
+          label="描述">
         </el-table-column>
         <el-table-column
           align="center"
@@ -63,6 +73,7 @@
           <template slot-scope="scope">
             <el-button style="color:#409EFF;" type="text" @click="editMsg(scope.row)">编辑</el-button>
             <el-button style="color:#F56C6C;" type="text" @click="delMsg(scope.row)">删除</el-button>
+            <!-- <el-button style="color:#409EFF;" type="text" @click="handleData(scope.row)">从设备导入数据</el-button> -->
           </template>
         </el-table-column>
       </el-table>
@@ -97,11 +108,20 @@
                 clearable>
                 <el-option
                   v-for="item in deviceType"
-                  :key="item.typeNum"
+                  :key="item.type"
                   :label="item.typeStr"
-                  :value="item.typeNum">
+                  :value="item.type">
                 </el-option>
               </el-select>
+            </el-form-item>
+            <el-form-item label="密码" prop="pass">
+              <el-input v-model="addForm.pass"></el-input>
+            </el-form-item>
+            <el-form-item label="端口" prop="port">
+              <el-input v-model="addForm.port"></el-input>
+            </el-form-item>
+            <el-form-item label="描述" prop="remarks">
+              <el-input v-model="addForm.remarks"></el-input>
             </el-form-item>
           </el-form>
         </div>
@@ -119,9 +139,9 @@ import titleBar from "components/common/titleBar/TitleBar"
 import searchBar from "components/common/searchBar/SearchBar"
 import pagination from "components/common/pagination/Pagination"
 //请求
-import {request} from "@/network/request"
+import { request } from "@/network/request"
 //工具方法
-import { formatTime } from "@/utils";
+import { formatTime,handleRequest,print } from "@/utils";
 
 export default {
   name: 'face',
@@ -137,20 +157,25 @@ export default {
     return {
       addDrawer:false,
       addForm:{
-        device_name:"",
-        ip:"",
-        location:"",
+        device_id:'',
+        device_name:'',
+        ip:'',
+        location:'',
+        pass:null,
+        port:null,
         type:null,
-        device_id:null
+        remarks:''
       },
       addFormRule:{
         device_name:[
           {required: true, message: '请输入设备名称', trigger: 'blur'},
           {validator:(rule, value, callback)=>{
-            if (value.length > 40) {
-              callback(new Error ('长度限制40'))
-            } else {
-              callback()
+            if (value != null) {
+              if (value.length > 40) {
+                callback(new Error ('长度限制40'))
+              } else {
+                callback()
+              }
             }
           },trigger: 'blur'}
         ],
@@ -160,15 +185,52 @@ export default {
         ],
         location:[
           {validator:(rule, value, callback)=>{
-            if (typeof value === 'string' && value.length > 200) {
-              callback(new Error ('长度限制200'))
-            } else {
-              callback()
+            if (value != null) {
+              if (value.length > 200) {
+                callback(new Error ('长度限制200'));
+              } else {
+                callback();
+              }
             }
           },trigger: 'blur'}
         ],
         type:[
           {required: true, message: '请输入设备位置', trigger: 'blur'}
+        ],
+        pass:[
+          {required: true, message: '请输入设备密码', trigger: 'blur'},
+          {validator:(rule, value, callback)=>{
+            if (value != null) {
+              if (value.length > 40) {
+                callback(new Error ('长度限制40'));
+              } else {
+                callback();
+              }
+            }
+          },trigger: 'blur'}
+        ],
+        port:[
+          {required: true, message: '请输入端口号', trigger: 'blur'},
+          {validator:(rule, value, callback)=>{
+            if (value != null) {
+              if (value.length > 11) {
+                callback(new Error ('长度限制11'));
+              } else {
+                callback();
+              }
+            }
+          },trigger: 'blur'}
+        ],
+        remarks:[
+          {validator:(rule, value, callback)=>{
+            if (value != null) {
+              if (value.length <= 200) {
+                callback();
+              } else {
+                callback(new Error ('长度限制200'));
+              }
+            }
+          },trigger: 'blur'}
         ]
       },
       deviceType:[],
@@ -199,17 +261,20 @@ export default {
       // 提交成功后应该关闭drawer，表单会自动清除
       this.$refs['addForm'].validate((valid) => {
         if (valid) {
-          this.$store.commit('handleLoding')
+          this.$store.commit('handleLoding');
           if (this.submitType === 1) {
             //执行注册
             request({
-                url:"/device/insert",
+                url:"/faceDevice/insert",
                 method:"post",
                 data:{
                   device_name:this.addForm.device_name,
+                  ip:this.addForm.ip,
                   location:this.addForm.location,
                   type:this.addForm.type,
-                  ip:this.addForm.ip
+                  pass:this.addForm.pass,
+                  port:this.addForm.port,
+                  remarks:this.addForm.remarks
                 }
               }).then(res => {
               // window.console.log(res)
@@ -218,24 +283,27 @@ export default {
                 type: 'success'
               });
               //成功后刷新
-              this.getDeviceData.call(this)
-              this.closeDrawer.call(this)
+              this.getDeviceData.call(this);
+              this.closeDrawer.call(this);
             }).catch(err =>{
-              window.console.log(err)
+              window.console.log(err);
             }).finally(()=>{
-              this.$store.commit('handleLoding')
+              this.$store.commit('handleLoding');
             })
           } else if(this.submitType === 2){
             //执行修改
             request({
-                url:"/device/update",
+                url:"/faceDevice/update",
                 method:"post",
                 data:{
-                  device_name:this.addForm.device_name,
                   device_id:this.addForm.device_id,
+                  device_name:this.addForm.device_name,
+                  ip:this.addForm.ip,
                   location:this.addForm.location,
                   type:this.addForm.type,
-                  ip:this.addForm.ip,
+                  pass:this.addForm.pass,
+                  port:this.addForm.port,
+                  remarks:this.addForm.remarks
                 }
               }).then(res => {
               // window.console.log(res)
@@ -261,12 +329,12 @@ export default {
       // 首先清空表单，然后关闭drawer
       this.$refs['addForm'].resetFields()
       for (const key in this.addForm) {
-        this.addForm[key] = null
+        this.addForm[key] = null;
       }
-      this.addDrawer = false
+      this.addDrawer = false;
     },
-    delMsg(row){//删除账户
-      this.$prompt('您确定要删除该设备吗?删除设备的同时将会删除设备的相关的考勤和人员出入的记录，输入“确定”删除该设备', '提示', {
+    delMsg(row){//删除设备
+      this.$prompt('您确定要删除该设备吗?此操作耗时可能会比较长,删除设备的同时将会删除设备的相关的考勤和人员出入的记录，输入“确定”删除该设备', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         inputValidator:(value)=>{
@@ -279,18 +347,22 @@ export default {
       }).then(() => {
         this.$store.commit('handleLoding')
         request({
-          url:"/device/delete",
+          url:"/faceDevice/delete",
           method:"post",
+          timeout:3000000,
           data:{
             device_id:row.device_id
           }
         }).then((res) =>{
-          this.$message({
-            type: 'success',
-            message: res.data.respond,
-          });
+          let respond = handleRequest.call(this,res.data);
+          if (respond !==false) {
+            this.$message({
+              message: respond,
+              type: 'success'
+            });
+          }
           //刷新数据
-          this.getDeviceData.call(this)
+          this.getDeviceData.call(this);
         }).catch(err =>{
           window.console.log(err)
         }).finally(()=>{
@@ -317,23 +389,33 @@ export default {
     getDeviceData(){//请求设备数据
       this.$store.commit('handleLoding')
       request({
-        url:"/device/select",
+        url:"/faceDevice/select",
         method:"post",
         data:{
           currentPage:this.currPage,
           pageSize:this.pageSize
         }
       }).then(res => {
-        // window.console.log(res)
+        // print(res);
         //将数据循环放进数组中
-        this.deviceData = []
-        let {allCount,list} = res.data.respond
-        list.forEach((value) => {
-          this.deviceData.push(value)
+        this.deviceData = [];
+        let {allCount,list} = handleRequest.call(this,res.data);
+        list.forEach((val) => {
+          this.deviceData.push({
+            device_id:val.device_id,
+            device_name:val.device_name,
+            ip:val.ip,
+            location:val.location,
+            pass:val.pass,
+            port:val.port,
+            type:val.type,
+            typeStr:val.typeStr,
+            remarks:val.remarks
+          })
         });
         this.allPage = allCount
       }).catch(e => {
-        window.console.log(e)
+        print(e);
       }).finally(()=>{
         this.$store.commit('handleLoding')
       })
@@ -341,12 +423,22 @@ export default {
     getDeviceType(){//获取设备类型
       this.$store.commit('handleLoding')
       request({
-        url:"/device/type",
+        url:"/faceDevice/selectType",
         method:"get",
       }).then(res =>{
-        this.deviceType = res.data.respond.deviceTypes
+        // print(res);
+        this.deviceType = [];
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          respond.forEach(val =>{
+            this.deviceType.push({
+              type:val.type,
+              typeStr:val.typeStr
+            });
+          });
+        }
       }).catch(err =>{
-        window.console.log(err)
+        print(err);
       }).finally(()=>{
         this.$store.commit('handleLoding')
       })
@@ -362,6 +454,50 @@ export default {
       this.getDeviceData.call(this)
 
     },
+
+    //表格操作
+    handleData(row){//导出设备数据
+      // window.console.log(row)
+      this.$prompt('此功能将设备中的数据和本地数据同步（此功能处于测试阶段，非特殊情况，请勿使用）,输入确定同步数据', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputValidator:(value)=>{
+          if (value === "确定") {
+            return true
+          } else {
+            return "输入“确定”执行操作"
+          }
+        }
+      }).then(() => {
+        this.$store.commit('handleLoding')
+        request({
+          url:"/device/deviceExport",
+          method:"post",
+          data:{
+            device_id:row.device_id
+          }
+        }).then((res) =>{
+          let respond = handleRequest.call(this,res.data);
+          if (respond !== false) {
+            this.$message({
+              message: respond,
+              type: 'success'
+            });
+          }
+          //刷新数据
+          // this.getDeviceData.call(this);
+        }).catch(err =>{
+          window.console.log(err);
+        }).finally(()=>{
+          this.$store.commit('handleLoding');
+        })
+      }).catch(() => {
+             
+      });
+      
+    },
+
+
     //转换表格数据格式
     formatTime(row){
       // window.console.log(row, column, cellValue, index)
@@ -384,9 +520,9 @@ export default {
       }
     }
   },
-  created(){
-    this.getDeviceData.call(this)
-    this.getDeviceType.call(this)
+  mounted(){
+    this.getDeviceData.call(this);
+    this.getDeviceType.call(this);
   },
 }
 </script>

@@ -248,7 +248,7 @@ export default {
                 remarks:this.branchForm.remarks
               }
             }).then((res) => {
-              window.console.log(res)
+              // window.console.log(res)
               /*
                 注册成功后关闭注册框
                 刷新界面数据

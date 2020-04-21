@@ -1,17 +1,20 @@
 <template>
-  <div class="device">
+  <div class="car">
     <el-menu :default-openeds="['1']">
       <el-submenu index="1">
         <template slot="title">
           <i class="el-icon-caret-bottom"></i>
-          <span>基础管理</span>
+          <span>考勤报表</span>
         </template>
         <el-menu-item-group>
-          <router-link to="/home/faceDevice">
-            <el-menu-item index="1-1">人脸识别设备</el-menu-item>
+          <router-link to="/home/carMan">
+            <el-menu-item index="1-1">环保车辆管理</el-menu-item>
           </router-link>
-          <router-link to="/home/carDevice">
-            <el-menu-item index="1-2">车牌识别设备</el-menu-item>
+          <router-link to="/home/carMan2">
+            <el-menu-item index="1-2">员工车辆管理</el-menu-item>
+          </router-link>
+          <router-link to="/home/carRecord">
+            <el-menu-item index="1-3">出入记录</el-menu-item>
           </router-link>
         </el-menu-item-group>
       </el-submenu>
@@ -21,7 +24,7 @@
 
 <script>
 export default {
-  name: 'device',
+  name: '',
   data() {
     return {
 

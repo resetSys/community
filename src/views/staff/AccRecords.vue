@@ -96,7 +96,7 @@ import pagination from "components/common/pagination/Pagination"
 //网络请求
 import { request } from "@/network/request";
 //工具
-import { formatTime,handleRequest } from "@/utils"
+import { formatTime,handleRequest,print } from "@/utils"
 export default {
   name: 'acc-records',
   data() {
@@ -129,36 +129,35 @@ export default {
     getRecords(){
       this.$store.commit('handleLoding')
       request({
-        url:"/personnelRecord/selectLimit",
+        url:"/staffRecords/select",
         method:"post",
         data:{
           currentPage:this.currPage,
           pageSize:this.pageSize,
-          personnel_id:this.searchForm.id,
+          job_number:this.searchForm.id,
           device_id:this.searchForm.deviceId,
           st_time:this.searchForm.beginTime,
           end_time:this.searchForm.endTime
         }
       }).then((res) => {
-        // window.console.log(res)
-        let { list,allCount } = handleRequest.call(this,res.data)
-        this.allPage = allCount
-        this.records = []
+        // print(res);
+        let { list,allCount } = handleRequest.call(this,res.data);
+        this.allPage = allCount;
+        this.records = [];
         if (list !== false) {
           list.forEach(ele => {
             this.records.push({
-              id:ele.personnel_id,
-              name:ele.name,
+              id:ele.job_number,
+              name:ele.staff_name,
               deviceName:ele.device_name,
               sex:ele.sex,
               tel:ele.tel,
-              time:ele.time
-            })
+              time:ele.record_time
+            });
           });
         }
-        
       }).catch((err) => {
-        window.console.log(err)
+        print(err);
       }).finally(()=>{
         this.$store.commit('handleLoding')
       })
@@ -179,25 +178,28 @@ export default {
     //搜索功能
     search(){
       // window.console.log(this.searchForm)
-      this.currPage = 1
-      this.getRecords.call(this)
+      this.currPage = 1;
+      this.getRecords.call(this);
     },
     getBranchs(){//获取设备
-      this.$store.commit('handleLoding')
+      this.$store.commit('handleLoding');
       request({
-        url:"/personnelRecord/selectDevice",
+        url:"/staffRecords/selectFaceDevice",
         method:"post",
       }).then((res) => {
-        // window.console.log(res)
-        this.devices = []
-        res.data.respond.forEach(ele => {
-          this.devices.push({
-            id:ele.device_id,
-            name:ele.device_name
-          })
-        });
+        // print(res);
+        this.devices = [];
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          respond.forEach(ele => {
+            this.devices.push({
+              id:ele.device_id,
+              name:ele.device_name
+            });
+          });
+        }
       }).catch((err) => {
-        window.console.log(err)
+        print(err);
       }).finally(()=>{
         this.$store.commit('handleLoding')
       })

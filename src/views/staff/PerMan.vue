@@ -55,7 +55,7 @@
         stripe
         empty-text="暂无数据">
         <el-table-column
-          prop="id"
+          prop="jobNum"
           align="center"
           label="工号"
           width="80">
@@ -79,6 +79,12 @@
           label="出生年月">
         </el-table-column>
         <el-table-column
+          prop="nation"
+          align="center"
+          show-overflow-tooltip
+          label="民族">
+        </el-table-column>
+        <el-table-column
           prop="tel"
           align="center"
           show-overflow-tooltip
@@ -100,7 +106,7 @@
           prop="weChatId"
           align="center"
           show-overflow-tooltip
-          label="微信ID">
+          label="消息推送ID">
         </el-table-column>
         <el-table-column
           prop="job"
@@ -301,6 +307,11 @@
         <div class="drawer-con">
           <el-form :model="perForm" :rules="perFormRules" ref="perForm"
             label-width="7vw" label-position="right">
+            <el-form-item label="工号" prop="jobNum">
+              <el-input v-model="perForm.jobNum">
+                <el-button slot="append" @click="getJobNum">生成</el-button>
+              </el-input>
+            </el-form-item>
             <el-form-item label="姓名" prop="name">
               <el-input v-model="perForm.name"></el-input>
             </el-form-item>
@@ -308,6 +319,12 @@
               <el-select v-model="perForm.sex" placeholder="请选择">
                 <el-option label="男" value="男"></el-option>
                 <el-option label="女" value="女"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="民族" prop="nation">
+              <el-select v-model="perForm.nation" placeholder="请选择">
+                <el-option v-for="(item,index) in nations" :key="index" 
+                  :label="item" :value="item"/>
               </el-select>
             </el-form-item>
             <el-form-item label="出生年月" prop="birth">
@@ -325,7 +342,7 @@
                 type="date"
                 placeholder="选择日期"
                 format="yyyy-MM-dd"
-                value-format="timestamp">
+                value-format="yyyy-MM-dd">
               </el-date-picker>
             </el-form-item>
             <el-form-item label="身份证号" prop="idCard">
@@ -362,7 +379,7 @@
                 }">
               </el-cascader>
             </el-form-item>
-            <el-form-item label="微信ID">
+            <el-form-item label="消息推送ID">
               <el-input v-model="perForm.weChatId"></el-input>
             </el-form-item>
             <el-form-item label="照片" prop="picture" style="position:relative;height:80px;">
@@ -400,7 +417,7 @@ import pagination from "components/common/pagination/Pagination"
 
 // import distpicker from "v-distpicker"
 //工具
-import { transform,handleRequest,formatTime } from "@/utils"
+import { transform,handleRequest,formatTime,print } from "@/utils"
 //网络请求
 import { request } from "@/network/request";
 
@@ -434,24 +451,26 @@ export default {
         birth:"",
         tel:"",
         address:"",
+        jobNum:null,
         job:"",
         picture:"",
         enterDate:null,
         branchId:[],
-        branchName:null
+        branchName:null,
       },
       perFormRules:{
         name:[
-          {required: true, message: '请输入名称', trigger: 'blur'}
+          {required: true, message: '请输入名称', trigger: 'blur'},
+          {max:30,message: '请输入名称',trigger:'blur'}
         ],
         sex:[
-          {required: true, message: '请选择性别', trigger: 'blur'}
+          // {required: true, message: '请选择性别', trigger: 'blur'}
         ],
         birth:[
-          {required: true, message: '请选择出生日期', trigger: 'blur'}
+          // {required: true, message: '请选择出生日期', trigger: 'blur'}
         ],
         tel:[
-          {required: true, message: '请输入手机号码', trigger: 'blur'},
+          // {required: true, message: '请输入手机号码', trigger: 'blur'},
           {validator:(rule,val,callback)=> {
             let reg = /^1[3456789]\d{9}$/;
             if (!reg.test(val)) {
@@ -462,7 +481,7 @@ export default {
           },trigger:'blur'}
         ],
         idCard:[
-          {required: true, message: '请选择出生日期', trigger: 'blur'},
+          // {required: true, message: '请选择出生日期', trigger: 'blur'},
           {validator:(rule,val,callback)=> {
             let reg = /^[1-9]\d{5}(18|19|20|(3\d))\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
             if (!reg.test(val)) {
@@ -473,14 +492,28 @@ export default {
           },trigger:'blur'}
         ],
         address:[
-          {required: true, message: '请选择家庭住址', trigger: 'blur'}
+          // {required: true, message: '请选择家庭住址', trigger: 'blur'}
         ],
         picture:[
           {required: true, message: '请选择照片', trigger: 'blur'}
+        ],
+        jobNum:[
+          {required: true, message: '请输入工号', trigger: 'blur'},
+          {validator:(rule,val,callback)=> {
+            let reg = /^[0-9]*$/;
+            if (!reg.test(val)) {
+              callback(new Error('只能是纯数字'));
+            } else if(val.length > 20){
+              callback(new Error('长度不能超过20'));
+            } else {
+              callback();
+            }
+          },trigger:'blur'}
         ]
       },
       citys:this.$store.state.citys,
       branchs:[],
+      nations:this.$store.state.nations,
       //分页
       pageSize:10,
       allPage:0,
@@ -491,7 +524,7 @@ export default {
         name:'',
         idCard:'',
         branch:'',
-        tes:''
+        tel:''
       },
       //添加权限
       bindLimitDialog:false,
@@ -512,56 +545,56 @@ export default {
       this.submitType = 1
     },
     getPersonData(){//获取人员数据
-      this.$store.commit('handleLoding')
+      this.$store.commit('handleLoding');
       let branchId = this.searchForm.branch.length== 0? null: this.searchForm.branch[this.searchForm.branch.length-1];
       // window.console.log(branchId)
       request({
-        url:"/personnel/selectLimit",
+        url:"/staff/select",
         method:"post",
         data:{
           currentPage:this.currPage,
           pageSize:this.pageSize,
-          personnel_id:this.searchForm.id,
-          name:this.searchForm.name,
+          job_number:this.searchForm.id,
+          staff_name:this.searchForm.name,
           id_card :this.searchForm.idCard,
           tel:this.searchForm.tel,
           branch_id:branchId
         }
       }).then((res) => {
-        // window.console.log(res)
-        let { allCount,list } = handleRequest(res.data);
-        this.allPage= allCount
-        this.perData = []
+        let { allCount,list } = handleRequest.call(this,res.data);
+        this.allPage= allCount;
+        this.perData = [];
         list.forEach(ele => {
           this.perData.push({
-            id:ele.personnel_id,
-            name:ele.name,
+            id:ele.staff_id,
+            name:ele.staff_name,
             sex:ele.sex,
-            birth:ele.birthday,
+            birth:ele.birth_date,
             tel:ele.tel,
             address:ele.address,
-            weChatId:ele.wxid,
-            job:ele.position,
-            picture:ele.picture,
-            enterDate:ele.date_on_board,
+            weChatId:ele.send_id,
+            job:ele.job,
+            jobNum:ele.job_number,
+            picture:ele.face,
+            enterDate:ele.joined_date,
             idCard:ele.id_card,
-            branchId:ele.branch_id,
-            branchName:ele.branch_name
+            branchName:ele.branch_name,
+            nation:ele.nation
           })
         });
       }).catch((err) => {
         window.console.log(err)
       }).finally(()=>{
         this.$store.commit('handleLoding')
-      })
+      });
     },
     getBrandData(){//获取所有的部门
       this.$store.commit('handleLoding')
       request({
-        url:"/personnel/selectBranch",
+        url:"/staff/selectBranch",
         method:"post",
       }).then((res) => {
-        // window.console.log(res)
+        // print(res);
         this.branchs = res.data.respond;
       }).catch((err) => {
         window.console.log(err)
@@ -571,7 +604,9 @@ export default {
     },
     deleteInfo(row){//删除
       // window.console.log(row)
-      this.$confirm('确认删除吗?', '提示', {
+      this.$confirm(`该操作将会删除人员信息以及人员出入记录，
+      将会影响考勤的生成，请确保该人员无需生成考勤报表！该操作不会删除其在设备的权限，
+      在删除人员前请确保删除其权限！`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -582,16 +617,19 @@ export default {
         */
         this.$store.commit('handleLoding')
         request({
-          url:"/personnel/delete",
+          url:"/staff/delete",
           method:"post",
           data:{
-            personnel_id:row.id
+            staff_id:row.id
           }
         }).then((res) =>{
-          this.$message({
-            type: 'success',
-            message: res.data.respond,
-          });
+          let respond = handleRequest.call(this,res.data);
+          if (respond !== false) {
+            this.$message({
+              message: respond,
+              type: 'success'
+            });
+          }
           //刷新数据
           this.getPersonData.call(this)
         }).catch(err =>{
@@ -617,11 +655,11 @@ export default {
       this[dialog] = true
     },
     submit(){//提交表单
-      let branchId
-      if (this.perForm.branchId!== null) {
+      let branchId = null;
+      if (this.perForm.branchId !== null && this.perForm.branchId !== undefined) {
+        print(this.perForm.branchId);
         branchId = this.perForm.branchId.length== 0? null: this.perForm.branchId[this.perForm.branchId.length-1];
       }
-      // window.console.log(branchId)
       // 提交成功后应该关闭drawer，表单会自动清除
       this.$refs['perForm'].validate((valid) => {
         if (valid) {
@@ -629,26 +667,31 @@ export default {
           if (this.submitType === 1) {
             //执行注册
             request({
-                url:"/personnel/insert",
+                url:"/staff/insert",
                 method:"post",
                 data:{
-                  name:this.perForm.name,
+                  job_number:this.perForm.jobNum,
+                  staff_name:this.perForm.name,
                   sex:this.perForm.sex,
-                  birthday:this.perForm.birth,
+                  birth_date:this.perForm.birth,
                   tel:this.perForm.tel,
                   address:this.perForm.address,
-                  wxid:this.perForm.weChatId,
-                  position:this.perForm.job,
-                  picture:this.perForm.picture,
-                  date_on_board:this.perForm.enterDate,
+                  send_id:this.perForm.weChatId,
+                  job:this.perForm.job,
+                  face:this.perForm.picture,
+                  joined_date:this.perForm.enterDate,
                   id_card:this.perForm.idCard,
-                  branch_id:branchId
+                  branch_id:branchId,
+                  nation:this.perForm.nation,
                 }
               }).then(res => {
-                this.$message({
-                  message: res.data.respond,
-                  type: 'success'
-                });
+                let respond = handleRequest.call(this,res.data);
+                if (respond !== false) {
+                  this.$message({
+                    message: respond,
+                    type: 'success'
+                  });
+                }
               //成功后刷新
               this.getPersonData.call(this)
               this.close.call(this,'perForm','addDrawer')
@@ -659,30 +702,36 @@ export default {
             })
           } else if(this.submitType === 2){
              request({
-                url:"/personnel/update",
+                url:"/staff/update",
                 method:"post",
                 data:{
-                  personnel_id:this.perForm.id,
-                  name:this.perForm.name,
+                  staff_id:this.perForm.id,
+                  job_number:this.perForm.jobNum,
+                  staff_name:this.perForm.name,
                   sex:this.perForm.sex,
-                  birthday:this.perForm.birth,
+                  birth_date:this.perForm.birth,
                   tel:this.perForm.tel,
                   address:this.perForm.address,
-                  wxid:this.perForm.weChatId,
-                  position:this.perForm.job,
-                  picture:this.perForm.picture,
-                  date_on_board:this.perForm.enterDate,
+                  send_id:this.perForm.weChatId,
+                  job:this.perForm.job,
+                  face:this.perForm.picture,
+                  joined_date:this.perForm.enterDate,
                   id_card:this.perForm.idCard,
-                  branch_id:branchId
+                  branch_id:branchId,
+                  nation:this.perForm.nation,
                 }
               }).then(res => {
-                this.$message({
-                  message: res.data.respond,
-                  type: 'success'
-                });
-              //成功后刷新
-              this.getPersonData.call(this)
-              this.close.call(this,'perForm','addDrawer')
+                // print(res);
+                let respond = handleRequest.call(this,res.data);
+                if (respond !== false) {
+                  this.$message({
+                    message: respond,
+                    type: 'success'
+                  });
+                }
+                //成功后刷新
+                this.getPersonData.call(this);
+                this.close.call(this,'perForm','addDrawer');
             }).catch(err =>{
               window.console.log(err)
             }).finally(()=>{
@@ -694,133 +743,22 @@ export default {
         }
       });
     },
-    previewPicture(picture){//图片预览
-      this.previewImg = picture;
-      this.prePicDialog = true;
-    },
-    setAccess(row){//点击权限按钮
-      // window.console.log(row)
-      this.setAccessDialog = true
-      //将人员id存储用于时段编辑
-      this.sendTimeObj.perId = row.id;
+    getJobNum(){//自动生成工号
       this.$store.commit('handleLoding')
       request({
-        url:"/personnel/selectOnPower",
-        method:"post",
-        data:{
-          personnel_id:row.id
-        }
-      }).then((res) => {
-        // window.console.log(res);
-        let respond = handleRequest.call(this,res.data)
-        this.accessData = []
-        respond.forEach(ele => {
-          this.accessData.push({
-            id:ele.device_id,
-            name:ele.device_name,
-            time:ele.passtime,
-            type:ele.type
-          })
-        });
-      }).catch((err) => {
-        window.console.log(err);
+        url:"/staff/jobNumber",
+        method:'get'
+      }).then(res =>{
+        let respond = handleRequest.call(this,res.data);
+        this.perForm.jobNum = respond;
+        // print(res);
       }).finally(()=>{
         this.$store.commit('handleLoding')
       })
     },
-    timeChange(){//当点击时间选择器确定按钮
-      this.sendTimeObj.timeFrame = []
-      //将不为空的数组进行拼接
-      for (const key in this.timeFrame) {
-        if (this.timeFrame.hasOwnProperty(key)) {
-          if (this.timeFrame[key]) {
-            // window.console.log(this.timeFrame[key])
-            this.sendTimeObj.timeFrame = this.sendTimeObj.timeFrame.concat(this.timeFrame[key])
-          }
-        }
-      }
-    },
-    sendTime(){//向后台发送人员id 设备id 限制时间
-      // window.console.log(this.sendTimeObj)
-      //对选择数据进行判断，如果为空不进行提交
-      if (this.sendTimeObj.timeFrame) {
-        this.$store.commit('handleLoding')
-        request({
-          url:"/personnel/updateOnPower",
-          method:"post",
-          data:{
-            personnel_id:this.sendTimeObj.perId,
-            device_id:this.sendTimeObj.deviceId,
-            passtime:this.sendTimeObj.timeFrame.join()
-          }
-        }).then((res) => {
-          // window.console.log(res)
-          let respond = handleRequest.call(this,res.data)
-          if (respond) {
-            this.$alert(respond, '提示', {
-              confirmButtonText: '确定',
-              dangerouslyUseHTMLString: true,
-            });
-          }
-          //清空时间选择器
-          for (const key in this.timeFrame) {
-            if (this.timeFrame.hasOwnProperty(key)) {
-              this.timeFrame[key] = null
-            }
-          }
-          //关闭时间选择框，刷新绑定数据
-          this.timeSelectDialog = false
-          this.setAccess.call(this,{id:this.sendTimeObj.perId})
-        }).catch((err) => {
-          window.console.log(err)
-        }).finally(()=>{
-          this.$store.commit('handleLoding')
-        })
-      } else {
-        this.$message({
-          message: '请选择时段',
-          type: 'warning'
-        });
-      }
-    },
-    addTime(row){//添加规则时段
-      // window.console.log(row)
-      this.timeSelectDialog = true
-      //将设备id存储用于编辑时段
-      this.sendTimeObj.deviceId = row.id;
-    },
-    deleteLimit(row){//删除绑定权限
-      //  window.console.log(row)
-      this.$confirm('您确定要删除吗?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type:"warning"
-      }).then(() => { 
-        this.$store.commit('handleLoding')
-        request({
-          url:"/personnel/deleteOnPower",
-          method:"post",
-          data:{
-            personnel_id:this.sendTimeObj.perId,
-            device_id:row.id,
-          }
-        }).then((res) =>{
-          // window.console.log(res)
-          this.$alert(res.data.respond, '提示', {
-            confirmButtonText: '确定',
-            dangerouslyUseHTMLString: true,
-          });
-          this.bindLimitDialog = false
-          //刷新数据
-          this.setAccess.call(this,{id:this.sendTimeObj.perId})
-        }).catch(err =>{
-          window.console.log(err)
-        }).finally(()=>{
-          this.$store.commit('handleLoding')
-        })
-      }).catch(() => {
-      
-      });
+    previewPicture(picture){//图片预览
+      this.previewImg = picture;
+      this.prePicDialog = true;
     },
     close(formName,dialog){//关闭注册抽屉
       /*
@@ -898,70 +836,54 @@ export default {
     changeTime(row){//格式化表格数据
       return formatTime(row.enterDate,'Y-M-D')
     },
-
     /*
-      添加人员权限
+      设置时段操作
     */
-    getLimitData(){//获取该人员可以绑定的权限
-      this.bindLimitDialog = true
-      this.$store.commit('handleLoding')
-      request({
-        url:"/personnel/selectUnPower",
-        method:"post",
-        data:{
-          personnel_id:this.sendTimeObj.perId
+    timeChange(){//当点击时间选择器确定按钮
+      this.sendTimeObj.timeFrame = []
+      //将不为空的数组进行拼接
+      for (const key in this.timeFrame) {
+        if (this.timeFrame.hasOwnProperty(key)) {
+          if (this.timeFrame[key]) {
+            // window.console.log(this.timeFrame[key])
+            this.sendTimeObj.timeFrame = this.sendTimeObj.timeFrame.concat(this.timeFrame[key])
+          }
         }
-      }).then((res) => {
-        // window.console.log(res)
-        this.limitData = []
-        let {respond} = res.data
-        respond.forEach(ele => {
-          this.limitData.push({
-            id:ele.device_id,
-            name:ele.device_name,
-            type:ele.type
-          })
-        });
-        
-      }).catch((err) => {
-        window.console.log(err)
-      }).finally(()=>{
-        this.$store.commit('handleLoding')
-      })
+      }
     },
-    handleSelectionChange(val){//用户选择checkbox
-      // window.console.log(val)
-      this.isSelectedLimit = []
-      val.forEach(ele => {
-        this.isSelectedLimit.push(ele.id)
-      });
-    },
-    submitLimit(){//提交新增规则
-      //对提交数据进行判断，如果为空则不提交
-      // window.console.log(this.sendTimeObj.perId,this.isSelectedLimit)
-      if (!this.isSelectedLimit.length == 0) {
+    sendTime(){//向后台发送人员id 设备id 限制时间
+      // window.console.log(this.sendTimeObj)
+      //对选择数据进行判断，如果为空不进行提交
+      if (this.sendTimeObj.timeFrame) {
         this.$store.commit('handleLoding')
         request({
-          url:"/personnel/insertPower",
+          url:"/staffPower/updatePower",
           method:"post",
           data:{
-             id:this.sendTimeObj.perId,
-             list:this.isSelectedLimit
+            staff_id:this.sendTimeObj.perId,
+            device_id:this.sendTimeObj.deviceId,
+            passtime:this.sendTimeObj.timeFrame.join()
           }
         }).then((res) => {
           // window.console.log(res)
-          /*
-            提交成功后刷新绑定设备数据，关闭dialog
-          */
-          this.$alert(res.data.respond, '提示', {
-            confirmButtonText: '确定',
-            dangerouslyUseHTMLString: true,
-          });
+          let respond = handleRequest.call(this,res.data)
+          if (respond !== false) {
+            this.$alert(respond, '提示', {
+              confirmButtonText: '确定',
+              dangerouslyUseHTMLString: true,
+            });
+          }
+          //清空时间选择器
+          for (const key in this.timeFrame) {
+            if (this.timeFrame.hasOwnProperty(key)) {
+              this.timeFrame[key] = null
+            }
+          }
           //关闭时间选择框，刷新绑定数据
-          this.bindLimitDialog = false
-          this.setAccess.call(this,{id:this.sendTimeObj.perId})
+          this.timeSelectDialog = false;
+          this.setAccess.call(this,{id:this.sendTimeObj.perId});
         }).catch((err) => {
-          window.console.log(err)
+          print(err);
         }).finally(()=>{
           this.$store.commit('handleLoding')
         })
@@ -972,11 +894,157 @@ export default {
         });
       }
     },
-    
+    addTime(row){//添加规则时段
+      // window.console.log(row)
+      this.timeSelectDialog = true
+      //将设备id存储用于编辑时段
+      this.sendTimeObj.deviceId = row.id;
+    },
+    /*
+      人员权限操作
+    */
+    setAccess(row){//点击权限按钮
+      // window.console.log(row)
+      this.setAccessDialog = true;
+      //将人员id存储用于时段编辑
+      this.sendTimeObj.perId = row.id;
+      this.$store.commit('handleLoding');
+      request({
+        url:"/staffPower/selectOnPower",
+        method:"post",
+        data:{
+          staff_id:row.id
+        }
+      }).then((res) => {
+        print(res);
+        let respond = handleRequest.call(this,res.data)
+        this.accessData = [];
+        if (respond !== false) {
+          respond.forEach(ele => {
+            this.accessData.push({
+              id:ele.device_id,
+              name:ele.device_name,
+              time:ele.passtime,
+              type:ele.type
+            });
+          });
+        }
+      }).catch((err) => {
+        print(err);
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      })
+    },
+    getLimitData(){//获取该人员可以绑定的权限
+      this.bindLimitDialog = true
+      this.$store.commit('handleLoding')
+      request({
+        url:"/staffPower/selectUnPower",
+        method:"post",
+        data:{
+          staff_id:this.sendTimeObj.perId
+        }
+      }).then((res) => {
+        // print(res);
+        this.limitData = [];
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          respond.forEach(ele => {
+            this.limitData.push({
+              id:ele.device_id,
+              name:ele.device_name,
+              type:ele.type
+            });
+          });
+        }
+      }).catch((err) => {
+        print(err);
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      })
+    },
+    handleSelectionChange(val){//用户选择checkbox
+      // window.console.log(val)
+      this.isSelectedLimit = [];
+      val.forEach(ele => {
+        this.isSelectedLimit.push(ele.id)
+      });
+    },
+    submitLimit(){//提交新增规则
+      //对提交数据进行判断，如果为空则不提交
+      // window.console.log(this.sendTimeObj.perId,this.isSelectedLimit)
+      if (!this.isSelectedLimit.length == 0) {
+        this.$store.commit('handleLoding')
+        request({
+          url:"/staffPower/insertPower",
+          method:"post",
+          data:{
+             staff_id:this.sendTimeObj.perId,
+             device_id:this.isSelectedLimit
+          }
+        }).then((res) => {
+          /*
+            提交成功后刷新绑定设备数据，关闭dialog
+          */
+          print(res);
+          let respond = handleRequest.call(this,res.data);
+          if (respond !== false) {
+            this.$alert(res.data.respond, '提示', {
+              confirmButtonText: '确定',
+              dangerouslyUseHTMLString: true,
+            });
+          }
+          //关闭时间选择框，刷新绑定数据
+          this.bindLimitDialog = false;
+          this.setAccess.call(this,{id:this.sendTimeObj.perId});
+        }).catch((err) => {
+          print(err);
+        }).finally(()=>{
+          this.$store.commit('handleLoding');
+        })
+      } else {
+        this.$message({
+          message: '请选择时段',
+          type: 'warning'
+        });
+      }
+    },
+    deleteLimit(row){//删除绑定权限
+      //  window.console.log(row)
+      this.$confirm('您确定要删除吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type:"warning"
+      }).then(() => { 
+        this.$store.commit('handleLoding');
+        request({
+          url:"/staffPower/deletePower",
+          method:"post",
+          data:{
+            staff_id:this.sendTimeObj.perId,
+            device_id:row.id,
+          }
+        }).then((res) =>{
+          this.$alert(res.data.respond, '提示', {
+            confirmButtonText: '确定',
+            dangerouslyUseHTMLString: true,
+          });
+          this.bindLimitDialog = false;
+          //刷新数据
+          this.setAccess.call(this,{id:this.sendTimeObj.perId});
+        }).catch(err =>{
+          print(err);
+        }).finally(()=>{
+          this.$store.commit('handleLoding');
+        })
+      }).catch(() => {
+      
+      });
+    },
   },
   mounted(){
-    this.getPersonData.call(this)
-    this.getBrandData.call(this)
+    // this.getPersonData.call(this)
+    this.getBrandData.call(this);
   }
 }
 </script>

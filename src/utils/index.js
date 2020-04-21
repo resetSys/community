@@ -96,10 +96,18 @@ function formatHS(time){
   }
 }
 
+/*
+  封装一个用于打印的方法
+*/
+function print(test) {
+  window.console.log(test);
+}
+
 export {
   transform,
   formatTime,
   handleRequest,
   formatMinutes,
-  formatHS
+  formatHS,
+  print
 }

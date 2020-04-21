@@ -28,6 +28,11 @@
             <img slot="img" src="~assets/imgs/tabControl/weiCart.png" alt="">
             <p slot="title">微信服务</p>
           </tab-control-item>
+          <tab-control-item @click.native="tabConClick(60,'car')"
+            :class="{'tabConActive':navName == 'car','is-disabled':isDisabled(60)}">
+            <img slot="img" src="~assets/imgs/tabControl/car.png" alt="">
+            <p slot="title">车辆管理</p>
+          </tab-control-item>
         </tab-control>
       </el-aside>
       <el-container>
@@ -48,7 +53,6 @@
         </el-container>
       </el-container>
     </el-container>
-    <!-- 自定义右键菜单 -->
   </div>
 </template>
 
@@ -61,6 +65,7 @@ import check from "views/navList/Check"
 import account from "views/navList/Account"
 import wechat from "views/navList/Wechat"
 import device from "views/navList/Device"
+import car from "views/navList/Car"
 //工具
 import hide from "components/common/toggle/Hide"
 import show from "components/common/toggle/Show"
@@ -78,7 +83,7 @@ export default {
       navName:'staff',
       navAside:true,
       navWidth:200,
-      limits:[10],
+      limits:[10,20,30,40,50,60],
     }
   },
   components: {
@@ -89,6 +94,7 @@ export default {
     staff,
     account,
     wechat,
+    car,
     device,
     hide,
     show
@@ -139,7 +145,7 @@ export default {
         url:"/account/selectIntPower",
         moethod:"post",
       }).then((res) => {
-        // window.console.log(res)
+        window.console.log(res)
         let respond = handleRequest.call(this,res.data)
         if (respond !== false) {
           this.limits = respond;
@@ -151,7 +157,7 @@ export default {
     },
   },
   mounted(){
-    this.getLimit.call(this)
+    // this.getLimit.call(this);
   }
 }
 </script>
@@ -166,6 +172,7 @@ export default {
   width: 100%;
   height: 100%;
   min-width: 1200px;
+  min-height: 700px;
 }
 
 /* 设置头部标签的样式 */

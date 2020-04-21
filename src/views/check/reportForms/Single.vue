@@ -94,6 +94,8 @@
               target="_self" type="primary" icon="el-icon-download">下载日报表</el-link> -->
             <el-button style="color:var(--brand-color);" type="text" 
               @click="handleViewDatily(scope.row)" v-show="scope.row.groupId">查看报表</el-button>
+            <el-button style="color:var(--brand-color);" type="text" 
+              @click="handlesuppl(scope.row)">补签</el-button>
             <!-- <el-button style="color:var(--brand-color);" type="text">周期报表</el-button> -->
           </template>
         </el-table-column>
@@ -158,20 +160,58 @@
       </span>
       
     </el-dialog>
+    <!-- 补签操作 -->
+    <el-dialog custom-class="limit-dialog" 
+      :visible.sync="supplDialog" 
+      width="30%" top="50vh"
+      :show-close="false"
+      title="补签"
+      :close-on-press-escape="$store.state.closeOnPresEscape"
+      :close-on-click-modal="$store.state.closeOnClickModal">
+      <el-form label-position="top" :model="supplForm" :rules="sFRules" ref="supplForm">
+        <el-form-item label="选择设备" prop="deviceId">
+          <el-select v-model="supplForm.deviceId" clearable placeholder="请选择">
+            <el-option
+              v-for="device in deviceGroup"
+              :key="device.value"
+              :label="device.label"
+              :value="device.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="选择时间" prop="time">
+          <el-date-picker
+            v-model="supplForm.time"
+            type="datetime"
+            value-format="timestamp"
+            placeholder="选择日期时间">
+          </el-date-picker>
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button type="primary" @click="submitSupple">提交</el-button>
+        <el-button @click="close('supplForm','supplDialog')">关闭</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 //组件
-import titleBar from "components/common/titleBar/TitleBar"
-import searchBar from "components/common/searchBar/SearchBar"
-import pagination from "components/common/pagination/Pagination"
+import titleBar from "components/common/titleBar/TitleBar";
+import searchBar from "components/common/searchBar/SearchBar";
+import pagination from "components/common/pagination/Pagination";
 
 //网络
-import { request } from "@/network/request"
+import { request } from "@/network/request";
+//工具
+import { handleRequest } from "@/utils";
+//混入
+import { mixin } from "@/mixins";
 
 export default {
   name: 'single',
+  mixins:[mixin],
   data() {
     return {
       perData:[],
@@ -198,6 +238,23 @@ export default {
         data:[],
         metre:[]
       },
+      //补签操作
+      supplDialog:false,
+      deviceGroup:[],
+      supplForm:{
+        deviceId:null,
+        time:null
+      },
+      sFRules:{
+        deviceId:[
+          { required: true, message: '请选择设备', trigger: 'blur' },
+        ],
+        time:[
+          { required: true, message: '请选择时间', trigger: 'blur' },
+        ]
+      },
+      suppleId:null,
+
       formIndex:0,
       formsData:null,
       personInfo:null
@@ -320,6 +377,63 @@ export default {
         this.$store.commit('handleLoding')
       })
     },
+    handlesuppl(row){//补签操作
+      this.supplDialog = true;
+      this.suppleId = row.id;//存储用户id
+      this.$store.commit('handleLoding')
+      request({
+        url:"cowaReportForms/selectDeviceSimp",
+        method:"post",
+      }).then((res) => {
+        // window.console.log(res)
+        let respond = handleRequest.call(this,res.data);
+        this.deviceGroup = [];
+        if (respond!== false) {
+          res.data.respond.forEach(ele => {
+            this.deviceGroup.push({
+              value:ele.device_id,
+              label:ele.device_name
+            })
+          });
+        }
+      }).catch((err) => {
+        window.console.log(err)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      });
+    },
+    submitSupple(){//提交操作
+      this.$refs['supplForm'].validate((valid) => {
+        if (valid) {
+          this.$store.commit('handleLoding')
+            request({
+            url:"/cowaReportForms/makeUp",
+            method:"post",
+            data:{
+              personnel_id:this.suppleId,
+              device_id:this.supplForm.deviceId,
+              time:this.supplForm.time
+            }
+          }).then((res) => {
+            // window.console.log(res)
+            let respond = handleRequest.call(this,res.data);
+            this.deviceGroup = [];
+            if (respond!== false) {
+              this.$message({
+                message: respond,
+                type: 'success'
+              });
+            }
+            this.close.call(this,'supplForm','supplDialog');
+          }).catch((err) => {
+            window.console.log(err)
+          }).finally(()=>{
+            this.$store.commit('handleLoding')
+          })
+        }
+      })
+    },
+
 
     //分页操作
     handelGroup(row){//关联考勤组

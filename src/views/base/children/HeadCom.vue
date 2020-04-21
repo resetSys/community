@@ -1,6 +1,6 @@
 <template>
   <div class="head-com">
-    <div class="head-title">考勤管理系统</div>
+    <div class="head-title">智慧园区管理系统</div>
     <div class="head-control">
       <el-dropdown @command="handleCommand">
         <span class="el-dropdown-link" style="cursor: pointer;padding:0 5px">
@@ -45,12 +45,14 @@
 <script>
 //请求
 import { request } from "@/network/request";
+//工具
+import { handleRequest } from "@/utils";
 
 export default {
   name: 'head-com',
   data() {
     let pwdValidator = (rule, value, callback)=>{
-      window.console.log(value)
+      // window.console.log(value)
       let reg = /[0-9A-Za-z]$/
       if (!reg.test(value)) {
         callback(new Error("密码为字母数字组成"))
@@ -69,12 +71,12 @@ export default {
         oldPwd:[
           {required: true, message: '请输入密码', trigger: 'blur'},
           {max:16,min:8,message:"长度为8-16位",trigger:'blur'},
-          {validator:pwdValidator,trigger:blur}
+          {validator:pwdValidator,trigger:'blur'}
         ],
         newPwd:[
           {required: true, message: '请输入密码', trigger: 'blur'},
           {max:16,min:8,message:"长度为8-16位",trigger:'blur'},
-          {validator:pwdValidator,trigger:blur}
+          {validator:pwdValidator,trigger:'blur'}
         ],
         againPwd:[
           {required: true, message: '请再次输入密码', trigger: 'blur'},
@@ -135,28 +137,33 @@ export default {
       this.changeDialog = false
     },
     submit(){//提交表单
-      this.$refs['addForm'].validate((valid) => {
+      this.$refs['pwdForm'].validate((valid) => {
         if (valid) {
           this.$store.commit('handleLoding')
           request({
-            url:"",
+            url:"/account/updatePass",
             method:"post",
             data:{
-              user:this.addForm.user,
-              pass:this.addForm.pass,
-              pass_md5:this.$md5(this.addForm.pass),
+              old_pass:this.$md5(this.pwdForm.oldPwd),
+              pass:this.pwdForm.newPwd,
+              pass_md5:this.$md5(this.pwdForm.againPwd)
             }
           }).then(res => {
-          this.$message({
-            message: res.data.respond,
-            type: 'success'
-          });
-          //成功后刷新
-          this.closeDrawer.call(this)
+          let respond = handleRequest.call(this,res.data);
+          if (respond!== false) {
+            this.$message({
+              message: respond,
+              type: 'success'
+            });
+            
+            //成功后刷新
+            this.closeDrawer.call(this);
+            this.$router.replace('/login');
+          }
         }).catch(err =>{
-          window.console.log(err)
+          window.console.log(err);
         }).finally(()=>{
-          this.$store.commit('handleLoding')
+          this.$store.commit('handleLoding');
         })
         }
       })
