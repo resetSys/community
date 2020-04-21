@@ -9,11 +9,11 @@ let mixin = {
       /*
         首先清空表单，然后关闭drawer
       */
-      this.$refs[formName].resetFields();
-      for (const key in this[formName]) {
-        this[formName][key] = null;
+      this.$refs[formName].resetFields()
+      for (let key in this[formName]) {
+        this[formName][key] = null
       }
-      this[dialog] = false;
+      this[dialog] = false
     },
   }
 }
