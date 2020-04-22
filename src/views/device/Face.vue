@@ -73,11 +73,8 @@
           <template slot-scope="scope">
             <el-button style="color:#409EFF;" type="text" @click="editMsg(scope.row)">编辑</el-button>
             <el-button style="color:#F56C6C;" type="text" @click="delMsg(scope.row)">删除</el-button>
-<!-- <<<<<<< HEAD -->
             <!-- <el-button style="color:#409EFF;" type="text" @click="handleData(scope.row)">从设备导入数据</el-button> -->
-<!-- ======= -->
             <el-button style="color:#409EFF;" type="text" @click="handleData(scope.row)">从设备导入数据</el-button>
-<!-- >>>>>>> d257f525556218105bcbebf7225636906a12e383 -->
           </template>
         </el-table-column>
       </el-table>
@@ -382,10 +379,9 @@ export default {
         将drawer打开
       */
       for (const key in this.addForm) {
-        // if (this.addForm.hasOwnProperty(key)) {
-          
-        // }
-        this.addForm[key] = row[key]
+        if (this.addForm.hasOwnProperty(key)) {
+          this.addForm[key] = row[key]
+        }
       }
       this.addDrawer = true
       this.submitType = 2
@@ -500,7 +496,6 @@ export default {
       });
       
     },
-
 
     //转换表格数据格式
     formatTime(row){

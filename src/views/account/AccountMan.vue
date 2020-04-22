@@ -91,7 +91,7 @@
       </el-scrollbar>
       <div class="drawer-bottom">
         <el-button type="primary" @click="submit">提交</el-button>
-        <el-button @click="closeDrawer">取消</el-button>
+        <el-button @click="close('addForm','addDrawer')">取消</el-button>
       </div>
     </el-drawer>
     <!-- 显示权限 -->
@@ -148,15 +148,18 @@
 
 <script>
 //组件
-import titleBar from "components/common/titleBar/TitleBar"
-import searchBar from "components/common/searchBar/SearchBar"
-import pagination from "components/common/pagination/Pagination"
+import titleBar from "components/common/titleBar/TitleBar";
+import searchBar from "components/common/searchBar/SearchBar";
+import pagination from "components/common/pagination/Pagination";
 //请求
-import {request} from "@/network/request"
+import {request} from "@/network/request";
 //工具
 import { handleRequest } from "@/utils";
+//混入
+import { mixin } from "@/mixins";
 export default {
   name: 'accountMan',
+  mixins:[mixin],
   data() {
     return {
       addDrawer:false,
@@ -221,14 +224,15 @@ export default {
     pagination
   },
   methods:{
-    // 新增账户
-    handleAdd(){
+    /**
+      表格操作
+    */
+    handleAdd(){// 新增账户
       this.addDrawer = true
       this.submitType = 1
     },
-    submit(){
+    submit(){//提交表单
       // window.console.log(this.addForm)
-      //提交表单
       // 提交成功后应该关闭drawer，表单会自动清除
       this.$refs['addForm'].validate((valid) => {
         if (valid) {
@@ -249,8 +253,8 @@ export default {
                 type: 'success'
               });
               //成功后刷新
-              this.getAccData.call(this)
-              this.closeDrawer.call(this)
+              this.getAccData.call(this);
+              this.close.call('addForm','addDrawer');
             }).catch(err =>{
               window.console.log(err)
             }).finally(()=>{
@@ -274,8 +278,8 @@ export default {
                 type: 'success'
               });
               //成功后刷新
-              this.getAccData.call(this)
-              this.closeDrawer.call(this)
+              this.getAccData.call(this);
+              this.close.call('addForm','addDrawer');
             }).catch(err =>{
               window.console.log(err)
             }).finally(()=>{
@@ -287,16 +291,7 @@ export default {
         }
       });
     },
-    closeDrawer(){
-      // 首先清空表单，然后关闭drawer
-      this.$refs['addForm'].resetFields()
-      for (const key in this.addForm) {
-        this.addForm[key] = null
-      }
-      this.addDrawer = false
-    },
-    //删除账户
-    delMsg(row){
+    delMsg(row){//删除账户
       // window.console.log(row)
       this.$prompt('您确定要删除该账号吗?输入“确定”删除该账号', '提示', {
         confirmButtonText: '确定',
@@ -332,6 +327,15 @@ export default {
        
       });
     },
+    closeDrawer(){
+      // 首先清空表单，然后关闭drawer
+      this.$refs['addForm'].resetFields()
+      for (const key in this.addForm) {
+        this.addForm[key] = null
+      }
+      this.addDrawer = false
+    },
+    
     //编辑账户
     editMsg(row){
       //将本行数据赋值给表单
@@ -344,30 +348,6 @@ export default {
       }
       this.addDrawer = true
       this.submitType = 2
-    },
-    getAccData(){//获取账号数据
-      this.$store.commit('handleLoding');
-      request({
-        url:"/account/select",
-        method:"post",
-        data:{
-          currentPage:this.currPage,
-          pageSize:this.pageSize
-        }
-      }).then(res => {
-        // window.console.log(res)
-        //将数据循环放进数组中
-        this.accData = []
-        let {allCount,list} = res.data.respond;
-        list.forEach((value) => {
-          this.accData.push(value);
-        });
-        this.allPage = allCount;
-      }).catch(e => {
-        window.console.log(e)
-      }).finally(()=>{
-        this.$store.commit('handleLoding');
-      })
     },
     getLimitData(row){//获取权限信息
       this.limitDialog = true
@@ -506,6 +486,34 @@ export default {
       this.checkAll = checkedCount === this.limitsOptions.length;
       this.isIndeterminate = checkedCount > 0 && checkedCount < this.limitsOptions.length;
     },
+
+    /**
+      表格数据检索
+    */
+    getAccData(){//获取账号数据
+      this.$store.commit('handleLoding');
+      request({
+        url:"/account/select",
+        method:"post",
+        data:{
+          currentPage:this.currPage,
+          pageSize:this.pageSize
+        }
+      }).then(res => {
+        // window.console.log(res)
+        //将数据循环放进数组中
+        this.accData = []
+        let {allCount,list} = res.data.respond;
+        list.forEach((value) => {
+          this.accData.push(value);
+        });
+        this.allPage = allCount;
+      }).catch(e => {
+        window.console.log(e)
+      }).finally(()=>{
+        this.$store.commit('handleLoding');
+      })
+    },
     hanSiChange(val){//分页条数改变
       // window.console.log(`每页 ${val} 条`);
       this.pageSize = val
@@ -517,11 +525,9 @@ export default {
       this.getAccData.call(this)
     },
   },
-  created(){
-    this.getAccData.call(this)
-  },
+
   mounted(){
-   
+    this.getAccData.call(this);
   },
   
 }
