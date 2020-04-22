@@ -346,7 +346,7 @@ export default {
       this.submitType = 2
     },
     getAccData(){//获取账号数据
-      this.$store.commit('handleLoding')
+      this.$store.commit('handleLoding');
       request({
         url:"/account/select",
         method:"post",
@@ -358,15 +358,15 @@ export default {
         // window.console.log(res)
         //将数据循环放进数组中
         this.accData = []
-        let {allCount,list} = res.data.respond
+        let {allCount,list} = res.data.respond;
         list.forEach((value) => {
-          this.accData.push(value)
+          this.accData.push(value);
         });
-        this.allPage = allCount
+        this.allPage = allCount;
       }).catch(e => {
         window.console.log(e)
       }).finally(()=>{
-        this.$store.commit('handleLoding')
+        this.$store.commit('handleLoding');
       })
     },
     getLimitData(row){//获取权限信息

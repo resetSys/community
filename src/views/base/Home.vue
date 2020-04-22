@@ -172,7 +172,7 @@ export default {
   width: 100%;
   height: 100%;
   min-width: 1200px;
-  min-height: 700px;
+  min-height: 500px;
 }
 
 /* 设置头部标签的样式 */

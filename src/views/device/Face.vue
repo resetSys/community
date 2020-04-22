@@ -73,15 +73,11 @@
           <template slot-scope="scope">
             <el-button style="color:#409EFF;" type="text" @click="editMsg(scope.row)">编辑</el-button>
             <el-button style="color:#F56C6C;" type="text" @click="delMsg(scope.row)">删除</el-button>
-<<<<<<< HEAD
 <!-- <<<<<<< HEAD -->
             <!-- <el-button style="color:#409EFF;" type="text" @click="handleData(scope.row)">从设备导入数据</el-button> -->
 <!-- ======= -->
             <el-button style="color:#409EFF;" type="text" @click="handleData(scope.row)">从设备导入数据</el-button>
 <!-- >>>>>>> d257f525556218105bcbebf7225636906a12e383 -->
-=======
-            <el-button style="color:#409EFF;" type="text" @click="handleData(scope.row)">从设备导入数据</el-button>
->>>>>>> d257f525556218105bcbebf7225636906a12e383
           </template>
         </el-table-column>
       </el-table>
@@ -149,11 +145,7 @@ import pagination from "components/common/pagination/Pagination"
 //请求
 import { request } from "@/network/request"
 //工具方法
-<<<<<<< HEAD
 import { formatTime,handleRequest,print } from "@/utils";
-=======
-import { formatTime,handleRequest } from "@/utils";
->>>>>>> d257f525556218105bcbebf7225636906a12e383
 
 export default {
   name: 'face',
@@ -346,11 +338,7 @@ export default {
       this.addDrawer = false;
     },
     delMsg(row){//删除设备
-<<<<<<< HEAD
       this.$prompt('您确定要删除该设备吗?此操作耗时可能会比较长,删除设备的同时将会删除设备的相关的考勤和人员出入的记录，输入“确定”删除该设备', '提示', {
-=======
-      this.$prompt('您确定要删除该设备吗?删除设备的同时将会删除设备的相关的考勤和人员出入的记录，输入“确定”删除该设备', '提示', {
->>>>>>> d257f525556218105bcbebf7225636906a12e383
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         inputValidator:(value)=>{
