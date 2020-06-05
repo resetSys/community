@@ -12,7 +12,10 @@ const PerMan = () => import("views/staff/PerMan");
 const DivMan = () => import("views/staff/DivMan");
 const PosMan = () => import("views/staff/PosMan");
 const AccRecords = () => import("views/staff/AccRecords");
-// 考勤管理
+//访客管理
+const VisitList = () => import("views/visit/VisitList");
+const VisitRecord = () => import("views/visit/VisitRecord");
+//考勤管理
 const CommonCheck = () => import("../views/check/checkRule/CheckMan.vue");
 const FreeCheck = () => import("../views/check/checkRule/FreeCheck.vue");
 const Single = () => import("../views/check/reportForms/Single.vue");
@@ -94,7 +97,15 @@ let routes = [{
     },{
       path:"/home/carRecord",
       component:CarRecord
-    }
+    },
+    {
+      path:"/home/visitRecord",
+      component:VisitRecord
+    },
+    {
+      path:"/home/visitList",
+      component:VisitList
+    },
   ]
 }]
 
