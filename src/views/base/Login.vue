@@ -98,11 +98,10 @@ export default {
   },
   mounted(){
     //获取节点
-    let time = setTimeout(() => {
-      // this.$refs.login.style.backgroundSize = "auto"+" "+170+"%"
-      this.$refs.login.style.backgroundSize = "110% 110%"
-      window.clearTimeout(time)
-    }, 100);
+    // let time = setTimeout(() => {
+    //   this.$refs.login.style.backgroundSize = "110% 110%"
+    //   window.clearTimeout(time);
+    // }, 100);
   }
 }
 </script>

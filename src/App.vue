@@ -7,10 +7,6 @@
 <script>
 export default {
   name: 'app',
-  // components: {
-  //   home,
-  //   login
-  // },
 }
 </script>
 

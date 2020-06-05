@@ -522,7 +522,7 @@ export default {
       }).then(() => {
         this.$store.commit('handleLoding');
         request({
-          url:"/ysgkPlate/delete ",
+          url:"/ysgkPlate/delete",
           method:"post",
           data:{
             license:row.num

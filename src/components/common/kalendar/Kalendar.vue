@@ -81,14 +81,14 @@ export default {
   },
   computed:{
     days(){//获取月份的天数
-      let dateObj = new Date(this.year,this.month,0)
-      return dateObj.getDate()
+      let dateObj = new Date(this.year,this.month,0);
+      return dateObj.getDate();
     }
   },
   methods:{
     timeChange(){//当年和月发生变化
-      this.dayArr = []
-      this.checkAll = false
+      this.dayArr = [];
+      this.checkAll = false;
     },
     formatTime(){//对选择的日期进行转化
       this.format = [];
@@ -96,15 +96,15 @@ export default {
         let dateObj = new Date(this.year,this.month-1,item);
         this.format.push(dateObj.getTime()/1000)
       }
-      window.console.log(this.format)
+      // window.console.log(this.format)
     },
     checkAllClick(){//选择全部
       if (this.checkAll) {
         for (let i = 1; i <= this.days; i++) {
-          this.dayArr.push(i)
+          this.dayArr.push(i);
         }
       } else {
-        this.dayArr = []
+        this.dayArr = [];
       }
     }
   },
