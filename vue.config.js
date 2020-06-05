@@ -5,8 +5,10 @@ module.exports = {
       alias: {
         'assets':'@/assets',
         'components':'@/components',
+        'mixins':'@/mixins',
         'views':"@/views",
-        'network':"@/network"
+        'network':"@/network",
+        'utils':'@/utils'
       }
     }
   }
