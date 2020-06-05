@@ -411,13 +411,13 @@
 
 <script>
 //组件
-import titleBar from "components/common/titleBar/TitleBar"
-import searchBar from "components/common/searchBar/SearchBar"
-import pagination from "components/common/pagination/Pagination"
+import titleBar from "components/common/titleBar/TitleBar";
+import searchBar from "components/common/searchBar/SearchBar";
+import pagination from "components/common/pagination/Pagination";
 
 // import distpicker from "v-distpicker"
 //工具
-import { transform,handleRequest,formatTime,print } from "@/utils"
+import { transform,handleRequest,formatTime,print } from "@/utils";
 //网络请求
 import { request } from "@/network/request";
 

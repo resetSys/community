@@ -1,0 +1,37 @@
+<template>
+  <div class="visitor">
+    <el-menu :default-openeds="['1']">
+      <el-submenu index="1">
+        <template slot="title">
+          <i class="el-icon-caret-bottom"></i>
+          <span>访客管理</span>
+        </template>
+        <el-menu-item-group>
+          <router-link to="/home/visit1">
+            <el-menu-item index="1-1">访客列表</el-menu-item>
+          </router-link>
+          <router-link to="/home/visit2">
+            <el-menu-item index="1-2">访客记录</el-menu-item>
+          </router-link>
+        </el-menu-item-group>
+      </el-submenu>
+    </el-menu>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'visitor',
+  data() {
+    return {
+
+    }
+  },
+  components: {
+
+  }
+}
+</script>
+
+<style scoped>
+</style>

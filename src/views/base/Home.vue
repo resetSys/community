@@ -8,6 +8,11 @@
             <img slot="img" src="~assets/imgs/tabControl/staff.png" alt="">
             <p slot="title">职工管理</p>
           </tab-control-item>
+          <tab-control-item @click.native="tabConClick(20,'visitor')" 
+            :class="{'tabConActive':navName == 'check','is-disabled':isDisabled(20)}">
+            <img slot="img" src="~assets/imgs/tabControl/visi.png" alt="">
+            <p slot="title">访客管理</p>
+          </tab-control-item>
           <tab-control-item @click.native="tabConClick(20,'check')" 
             :class="{'tabConActive':navName == 'check','is-disabled':isDisabled(20)}">
             <img slot="img" src="~assets/imgs/tabControl/check.png" alt="">
@@ -58,9 +63,10 @@
 
 <script>
 //组件
-import tabControl from "@/components/common/tabControl/TabControl"
-import tabControlItem from "@/components/common/tabControl/TabControlItem"
+import tabControl from "components/common/tabControl/TabControl"
+import tabControlItem from "components/common/tabControl/TabControlItem"
 import staff from "views/navList/Staff"
+import visitor from "views/navList/Visitor"
 import check from "views/navList/Check"
 import account from "views/navList/Account"
 import wechat from "views/navList/Wechat"
@@ -92,6 +98,7 @@ export default {
     headCom,
     check,
     staff,
+    visitor,
     account,
     wechat,
     car,

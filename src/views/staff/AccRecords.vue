@@ -48,7 +48,7 @@
         :data="records"
         style="width: 100%"
         stripe
-        empty-text="暂无数据">
+        empty-text="⚠暂无数据">
         <el-table-column
           prop="id"
           align="center"
