@@ -15,6 +15,7 @@ const AccRecords = () => import("views/staff/AccRecords");
 //访客管理
 const VisitList = () => import("views/visit/VisitList");
 const VisitRecord = () => import("views/visit/VisitRecord");
+const visitThread = () => import("views/visit/Thread");
 //考勤管理
 const CommonCheck = () => import("../views/check/checkRule/CheckMan.vue");
 const FreeCheck = () => import("../views/check/checkRule/FreeCheck.vue");
@@ -106,6 +107,10 @@ let routes = [{
       path:"/home/visitList",
       component:VisitList
     },
+    {
+      path:"/home/visitThread",
+      component:visitThread
+    }
   ]
 }]
 

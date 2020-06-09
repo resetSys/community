@@ -8,25 +8,26 @@
     </title-bar>
     <search-bar>
       <span slot="control">
-        <el-input size="small" v-model="searchForm.name"
+        <el-input size="small" v-model="searchForm.name" clearable
           style="width:200px;" placeholder="根据访客姓名搜索"></el-input>
-        <el-input size="small" v-model="searchForm.tel" 
+        <el-input size="small" v-model="searchForm.tel"  clearable
           style="width:200px;" placeholder="根据访客手机号搜索"></el-input>
-        <el-select v-model="perForm.sex" placeholder="根据性别检索" style="width:200px;">
+        <el-select v-model="searchForm.sex" placeholder="根据性别检索" clearable
+          style="width:200px;margin-right:5px;">
           <el-option label="男" value="男"></el-option>
           <el-option label="女" value="女"></el-option>
         </el-select>
-        <el-input size="small" v-model="searchForm.idCard"
+        <el-input size="small" v-model="searchForm.idCard" clearable
           style="width:200px;" placeholder="根据访客身份证号搜索"></el-input>
-        <el-button size="small" type="primary">搜索</el-button>
+        <el-button size="small" type="primary" @click="getPersonData()">搜索</el-button>
       </span>
     </search-bar>
     <el-scrollbar class="scrollbar">
       <el-table
         :data="records"
         style="width: 100%"
-        stripejinggao
-        empty-text="⚠暂无数据">
+        stripe
+        empty-text="暂无数据">
         <el-table-column
           prop="name"
           align="center"
@@ -68,6 +69,7 @@
               @click.native.prevent="deletePerson(scope.row)">删除</el-button>
             <el-button style="color:#409EFF;" type="text" 
               @click.native.prevent="edit(scope.row,'perForm','addDrawer')">编辑</el-button>
+            <el-button style="color:#409EFF;" type="text">创建访程</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -164,7 +166,12 @@ export default {
       allPage:0,//总页数
       currPage:1,//当前页
       //搜索表单
-      searchForm:{},
+      searchForm:{
+        name:'',
+        tel:'',
+        sex:'',
+        idCard:''
+      },
 
       //人员登记
       addDrawer:false,
@@ -240,6 +247,7 @@ export default {
       // window.console.log(`当前页: ${val}`);
       this.currPage = val
     },
+    /**获取访客数据 */
     getPersonData(){
       this.$store.commit('handleLoding');
       request({
@@ -447,7 +455,7 @@ export default {
 </script>
 
 <style scoped>
-.visit1{
+.visitList{
   width: 100%;
   height: 100%;
 }

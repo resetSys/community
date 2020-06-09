@@ -16,8 +16,8 @@
       <el-table
         :data="records"
         style="width: 100%"
-        stripejinggao
-        empty-text="⚠暂无数据">
+        stripe
+        empty-text="暂无数据">
         <el-table-column
           prop="name"
           align="center"
