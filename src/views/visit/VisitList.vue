@@ -69,7 +69,8 @@
               @click.native.prevent="deletePerson(scope.row)">删除</el-button>
             <el-button style="color:#409EFF;" type="text" 
               @click.native.prevent="edit(scope.row,'perForm','addDrawer')">编辑</el-button>
-            <el-button style="color:#409EFF;" type="text">创建访程</el-button>
+            <el-button style="color:#409EFF;" type="text"
+              @click="addThread(scope.row.id)">创建访程</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -140,6 +141,46 @@
       :close-on-press-escape="$store.state.closeOnPresEscape"
       :close-on-click-modal="$store.state.closeOnClickModal">
       <img :src="previewImg" alt="图片预览" class="preImg">
+    </el-dialog>
+    <!-- 创建访程表单 -->
+    <el-dialog :visible.sync="cTDialog" width="30%"
+      custom-class="limit-dialog"
+      title="创建访程" top="50vh"
+      :show-close="false"
+      :close-on-press-escape="$store.state.closeOnPresEscape"
+      :close-on-click-modal="$store.state.closeOnClickModal">
+      <el-form style="width:90%" :rules="threadFormRule" :model="threadForm" ref="threadForm"
+        label-width="7vw" label-position="right">
+        <el-form-item label="起始时间" prop="startTime">
+          <el-date-picker
+            v-model="threadForm.startTime"
+            type="datetime"
+            value-format="timestamp"
+            placeholder="选择日期时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="结束时间" prop="endTime">
+          <el-date-picker
+            v-model="threadForm.endTime"
+            type="datetime"
+            value-format="timestamp"
+            placeholder="选择日期时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="备注" prop="des">
+          <el-input v-model="threadForm.des"></el-input>
+        </el-form-item>
+        <el-form-item label="授权设备" prop="deviceIds">
+          <el-checkbox-group v-model="threadForm.deviceIds">
+            <el-checkbox v-for="(item,index) in devices" :key="index"
+              :label="item.id">{{item.name}}</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancelThread">取 消</el-button>
+        <el-button type="primary" @click="submitThread">确 定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -217,7 +258,15 @@ export default {
           },trigger:'change'}
         ],
         picture:[
-          {required: true, message: '请选择照片', trigger: 'change'}
+          {required: true, message: '请选择照片', trigger: 'change'},
+           {validator:(rule,val,callback)=> {
+            let reg = /^1[3456789]\d{9}$/;
+            if (!reg.test(val)) {
+              callback(new Error('手机号格式不正确'))
+            } else {
+              callback();
+            }
+          },trigger:'change'}
         ],
       },
       //提交类型
@@ -227,6 +276,34 @@ export default {
       prePicDialog:false,
       previewImg:null,
       
+      //创建访程
+      cTDialog:false,
+      devices:[],
+      threadForm:{/*访程表单*/
+        id:null,
+        startTime:null,
+        endTime:null,
+        des:'',
+        deviceIds:[]
+      },
+      threadFormRule:{
+        startTime:[
+          {required: true, message: '请选择开始时间', trigger: 'change'},
+        ],
+        endTime:[
+          {required: true, message: '请选择结束时间', trigger: 'change'},
+        ],
+        des:[
+          {validator:(rule,val,callback)=> {
+            if (val.length > 50) {
+              callback(new Error('不能超过50个字符'));
+            } else {
+              callback();
+            }
+          },trigger:'change'}
+        ],
+        deviceIds:[]
+      },
     }
   },
   components: {
@@ -234,8 +311,9 @@ export default {
     searchBar,
     pagination
   },
-  mounted:function(){
+  mounted(){
     this.getPersonData();
+    this.getDevice();
   },
   methods:{
     //分页请求
@@ -450,6 +528,76 @@ export default {
       }
       this[dialog] = true
     },
+    //添加访程
+    addThread(id){
+      this.cTDialog = true;
+      this.threadForm.id = id;
+    },
+    /**获取设备信息 */
+    getDevice(){
+      this.$store.commit('handleLoding');
+      request({
+        url:"/visitCurrent/selectSimpDevice",
+        method:"post",
+      }).then((res) => {
+        this.devices = [];
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          respond.forEach(ele => {
+            this.devices.push({
+              id:ele.device_id,
+              name:ele.device_name
+            });
+          });
+        }
+      }).catch((err) => {
+        window.console.log(err)
+      }).finally(()=>{
+        this.$store.commit('handleLoding');
+      });
+    },
+    /**提交访程信息 */
+    submitThread(){
+      this.$refs['threadForm'].validate((valid) => {
+        if (valid) {
+          this.$store.commit('handleLoding');
+          request({
+            url:"/visitCurrent/insert",
+            method:"post",
+            data:{
+              visitor_id:this.threadForm.id,
+              st_time:this.threadForm.startTime,
+              end_time:this.threadForm.endTime,
+              why:this.threadForm.des,
+              deviceIds:this.threadForm.deviceIds
+            }
+          }).then((res) => {
+            let respond = handleRequest.call(this,res.data);
+            if (respond !== false) {
+              this.$message({
+                message: respond,
+                type: 'success'
+              });
+            }
+            this.cancelThread();
+          }).catch((err) => {
+            window.console.log(err)
+          }).finally(()=>{
+            this.$store.commit('handleLoding');
+          });
+        }
+      });
+    },
+    /**取消提交 */
+    cancelThread(){
+      this.threadForm.id=null;
+      this.threadForm.startTime=null;
+      this.threadForm.endTime=null;
+      this.threadForm.des='';
+      this.threadForm.deviceIds=[];
+      this.$refs['threadForm'].resetFields();
+      this.cTDialog = false;
+    }
   }
 }
 </script>

@@ -9,12 +9,12 @@
             <p slot="title">职工管理</p>
           </tab-control-item>
           <tab-control-item @click.native="tabConClick(20,'visitor')" 
-            :class="{'tabConActive':navName == 'check','is-disabled':isDisabled(20)}">
+            :class="{'tabConActive':navName == 'visitor','is-disabled':isDisabled(20)}">
             <img slot="img" src="~assets/imgs/tabControl/visi.png" alt="">
             <p slot="title">访客管理</p>
           </tab-control-item>
-          <tab-control-item @click.native="tabConClick(20,'check')" 
-            :class="{'tabConActive':navName == 'check','is-disabled':isDisabled(20)}">
+          <tab-control-item @click.native="tabConClick(70,'check')" 
+            :class="{'tabConActive':navName == 'check','is-disabled':isDisabled(70)}">
             <img slot="img" src="~assets/imgs/tabControl/check.png" alt="">
             <p slot="title">考勤管理</p>
           </tab-control-item>
@@ -89,7 +89,7 @@ export default {
       navName:'staff',
       navAside:true,
       navWidth:200,
-      limits:[10,20,30,40,50,60],
+      limits:[10,20,30,40,50,60,70],
     }
   },
   components: {
@@ -117,7 +117,7 @@ export default {
   methods:{
     isDisabled(value){
       // window.console.log(value,this.limits.indexOf(value))
-      return this.limits.indexOf(value) === -1
+      return this.limits.indexOf(value) === -1;
     },
     tabConClick(num,comName){
       let result = this.limits.indexOf(num)
