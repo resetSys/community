@@ -58,6 +58,7 @@
         <el-table-column
           prop="status"
           align="center"
+          :formatter="theStatus"
           show-overflow-tooltip
           label="访问状态">
         </el-table-column>
@@ -278,7 +279,7 @@ export default {
         window.console.log(err);
       }).finally(()=>{
         this.$store.commit('handleLoding');
-      })
+      });
     },
     //分页请求
     hanSiChange(val){//分页条数改变
@@ -319,6 +320,19 @@ export default {
       }
       return '';
     },
+    /**访问状态 */
+    theStatus(row, column, cellValue){
+      switch (cellValue) {
+        case 0:
+          return '未访问';
+        case 1:
+          return '已进';
+        case 2:
+          return '已出';
+        default:
+          break;
+      }
+    },
 
     //修改访程时效
     editThread(id){
@@ -345,7 +359,9 @@ export default {
       }).then((res) => {
         let respond = handleRequest.call(this,res.data);
         if (respond !== false) {
+          //使用代码提示
           this.$message({
+            dangerouslyUseHTMLString:true,
             message: respond,
             type: 'success'
           });
@@ -511,6 +527,7 @@ export default {
           let respond = handleRequest.call(this,res.data);
           if (respond !== false) {
             this.$message({
+              dangerouslyUseHTMLString:true,
               message: respond,
               type: 'success'
             });

@@ -156,6 +156,7 @@
             v-model="threadForm.startTime"
             type="datetime"
             value-format="timestamp"
+            disabled
             placeholder="选择日期时间">
           </el-date-picker>
         </el-form-item>
@@ -281,7 +282,7 @@ export default {
       devices:[],
       threadForm:{/*访程表单*/
         id:null,
-        startTime:null,
+        startTime:new Date().getTime(),
         endTime:null,
         des:'',
         deviceIds:[]
@@ -575,6 +576,7 @@ export default {
             let respond = handleRequest.call(this,res.data);
             if (respond !== false) {
               this.$message({
+                dangerouslyUseHTMLString:true,
                 message: respond,
                 type: 'success'
               });

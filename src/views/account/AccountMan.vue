@@ -19,7 +19,7 @@
         stripe
         empty-text="暂无数据">
         <el-table-column
-          prop="account_id"
+          prop="id"
           align="center"
           show-overflow-tooltip
           label="ID">
@@ -37,13 +37,20 @@
           label="账户密码">
         </el-table-column>
         <el-table-column
+          prop="des"
+          align="center"
+          show-overflow-tooltip
+          label="备注">
+        </el-table-column>
+        <el-table-column
           align="center"
           label="操作">
           <template slot-scope="scope">
-            <el-button style="color:var(--brand-color);" type="text" @click="getLimitData(scope.row)">权限</el-button>
-            <el-button style="color:var(--brand-color);" type="text" @click="getDevice(scope.row)">绑定设备</el-button>
-            <el-button style="color:var(--brand-color);" type="text" @click="editMsg(scope.row)">编辑</el-button>
-            <el-button style="color:var(--delete-color);" type="text" @click="delMsg(scope.row)">删除</el-button>
+            <!-- <el-button style="color:var(--brand-color);" type="text" @click="getLimitData(scope.row)">权限</el-button> -->
+            <el-button style="color:var(--brand-color);" type="text"
+              @click="editMsg(scope.row)">编辑</el-button>
+            <el-button style="color:var(--delete-color);" type="text"
+              @click="delMsg(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -51,20 +58,7 @@
     <!-- 分页组件 -->
     <pagination :pageSize="pageSize" :allPage="allPage" :currIndex="currPage"
       @hanSiChange="hanSiChange" @hanCurrChange="hanCurrChange"></pagination>
-    <!-- 
-    新增需要的功能 
-      内部使用表单注册
-      下次打开前表单内容必须清空，可以在打开前清空也可以在关闭前清空,使用关闭前回调清空表单
-      如果内容较多的话应该让内容可以滚动
-      不允许使用esc和点击modol关闭drawer
-    编辑内容
-      使用的还是新增的表单，设置某些信息不可更改
-    删除信息
-      使用confirm提示以下，确定就删除
-    设置权限:
-      使用element多选框
-      页面加载后获取后台发送该人员已有的权限和全部权限
-    -->
+    <!-- 新增账户 -->
     <el-drawer :visible.sync="addDrawer" 
       :with-header="false"
       :wrapper-closable="$store.state.closeOnClickModal"
@@ -86,12 +80,16 @@
               <el-input v-model="addForm.confirmPass" type="password" show-password
                 placeholder="请再次输入密码"></el-input>
             </el-form-item>
+            <el-form-item label="备注">
+              <el-input v-model="addForm.des" type="text"
+                placeholder="备注信息"></el-input>
+            </el-form-item>
           </el-form>
         </div>
       </el-scrollbar>
       <div class="drawer-bottom">
         <el-button type="primary" @click="submit">提交</el-button>
-        <el-button @click="close('addForm','addDrawer')">取消</el-button>
+        <el-button @click="closeDrawer">取消</el-button>
       </div>
     </el-drawer>
     <!-- 显示权限 -->
@@ -112,37 +110,6 @@
         <el-button type="primary" @click="submitLimit">确 定</el-button>
       </span>
     </el-dialog>
-    <!-- 绑定设备 -->
-    <el-dialog custom-class="limit-dialog"
-      :visible.sync="bindEquiDialog" width="30%"
-      title="绑定设备" :top="$store.state.dialogTop"
-      :close-on-press-escape="$store.state.closeOnPresEscape"
-      :close-on-click-modal="$store.state.closeOnClickModal">
-
-      <p class="bind-title">人员注册设备:</p>
-      <el-checkbox-group
-        v-model="checkedDevice.person_login"
-        :max="1">
-        <el-checkbox v-for="item in deviceData.person_login" :label="item.device_id" :key="item.device_name">{{item.device_name}}</el-checkbox>
-      </el-checkbox-group>
-
-      <p class="bind-title">车牌识别设备:</p>
-      <el-checkbox-group
-        v-model="checkedDevice.plate_discern"
-        :max="1">
-        <el-checkbox v-for="item in deviceData.plate_discern" :label="item.device_id" :key="item.device_name">{{item.device_name}}</el-checkbox>
-      </el-checkbox-group>
-      <p class="bind-title">访客注册设备:</p>
-      <el-checkbox-group
-        v-model="checkedDevice.visitor_login"
-        :max="1">
-        <el-checkbox v-for="item in deviceData.visitor_login" :label="item.device_id" :key="item.device_name">{{item.device_name}}</el-checkbox>
-      </el-checkbox-group>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="bindEquiDialog = false">取 消</el-button>
-        <el-button type="primary" @click="submitBindDevice">确 定</el-button>
-      </span>
-    </el-dialog>
   </div>
 </template>
 
@@ -155,28 +122,29 @@ import pagination from "components/common/pagination/Pagination";
 import {request} from "@/network/request";
 //工具
 import { handleRequest } from "@/utils";
-//混入
-import { mixin } from "@/mixins";
 export default {
   name: 'accountMan',
-  mixins:[mixin],
   data() {
     return {
+      // 新增dialog
       addDrawer:false,
+
+      //权限
       limitDialog:false,
-      bindEquiDialog:false,
       checkAll: false,
       checkedLimits: [],
       limitsOptions: [],
       limitsObj:[],//存放所有的权限
       limitId:null,//用于权限提交
       isIndeterminate: true,
-      accData:[],
+
+      //添加表单
       addForm:{
-        account_id:null,
-        user:"",
-        pass:"",
-        confirmPass:""
+        id:null,
+        user:null,
+        pass:null,
+        confirmPass:null,
+        des:null
       },
       addFormRule:{
         user:[
@@ -206,16 +174,16 @@ export default {
           },trigger: 'blur'}
         ]
       },
+
+      //账号数据
+      accData:[],
+
+      //分页
       pageSize:30,
       allPage:0,
       currPage:1,
+
       submitType:1,//记录是注册还是修改
-      deviceData:{},
-      checkedDevice:{
-        visitor_login:[],
-        plate_discern:[],
-        person_login:[],
-      }
     }
   },
   components: {
@@ -224,12 +192,21 @@ export default {
     pagination
   },
   methods:{
-    /**
-      表格操作
-    */
-    handleAdd(){// 新增账户
+    // 新增账户
+    handleAdd(){
       this.addDrawer = true
       this.submitType = 1
+    },
+    //编辑账户
+    editMsg(row){
+      //将本行数据赋值给表单
+      for (const key in this.addForm) {
+        if (this.addForm.hasOwnProperty(key)) {
+          this.addForm[key] = row[key];
+        }
+      }
+      this.addDrawer = true;
+      this.submitType = 2
     },
     submit(){//提交表单
       // window.console.log(this.addForm)
@@ -246,15 +223,19 @@ export default {
                   user:this.addForm.user,
                   pass:this.addForm.pass,
                   pass_md5:this.$md5(this.addForm.pass),
+                  remarks:this.addForm.des
                 }
               }).then(res => {
-              this.$message({
-                message: res.data.respond,
-                type: 'success'
-              });
+              let respond = handleRequest.call(this,res.data);
+              if (respond !== false) {
+                this.$message({
+                  message: respond,
+                  type: 'success'
+                });
+              }
               //成功后刷新
-              this.getAccData.call(this);
-              this.close.call('addForm','addDrawer');
+              this.getAccData();
+              this.closeDrawer();
             }).catch(err =>{
               window.console.log(err)
             }).finally(()=>{
@@ -266,24 +247,28 @@ export default {
                 url:"/account/update",
                 method:"post",
                 data:{
-                  account_id:this.addForm.account_id,
+                  account_id:this.addForm.id,
                   user:this.addForm.user,
                   pass:this.addForm.pass,
                   pass_md5:this.$md5(this.addForm.pass),
+                  remarks:this.addForm.des
                 }
               }).then(res => {
-              window.console.log(res)
-              this.$message({
-                message: res.data.respond,
-                type: 'success'
-              });
+              // window.console.log(res)
+              let respond = handleRequest.call(this,res.data);
+              if (respond !== false) {
+                this.$message({
+                  message: respond,
+                  type: 'success'
+                });
+              }
               //成功后刷新
-              this.getAccData.call(this);
-              this.close.call('addForm','addDrawer');
+              this.getAccData();
+              this.closeDrawer();
             }).catch(err =>{
               window.console.log(err)
             }).finally(()=>{
-              this.$store.commit('handleLoding')
+              this.$store.commit('handleLoding');
             })
           }
         } else {
@@ -304,24 +289,27 @@ export default {
           }
         }
       }).then(() => {
-        this.$store.commit('handleLoding')
+        this.$store.commit('handleLoding');
         request({
           url:"/account/delete",
           method:"post",
           data:{
-            account_id:row.account_id
+            account_id:row.id
           }
         }).then((res) =>{
-          this.$message({
-            type: 'success',
-            message: res.data.respond,
-          });
+          let respond = handleRequest.call(this,res.data);
+          if (respond !== false) {
+            this.$message({
+              message: respond,
+              type: 'success'
+            });
+          }
           //刷新数据
-          this.getAccData.call(this)
+          this.getAccData();
         }).catch(err =>{
-          window.console.log(err)
+          window.console.log(err);
         }).finally(()=>{
-          this.$store.commit('handleLoding')
+          this.$store.commit('handleLoding');
         })
       }).catch(() => {
        
@@ -329,36 +317,24 @@ export default {
     },
     closeDrawer(){
       // 首先清空表单，然后关闭drawer
-      this.$refs['addForm'].resetFields()
+      this.$refs['addForm'].resetFields();
       for (const key in this.addForm) {
         this.addForm[key] = null
       }
-      this.addDrawer = false
+      this.addDrawer = false;
     },
     
-    //编辑账户
-    editMsg(row){
-      //将本行数据赋值给表单
-      for (const key in this.addForm) {
-        // if (this.addForm.hasOwnProperty(key)) {
-          
-        // }
-        this.addForm[key] = row[key]
-        // window.console.log(row[key])
-      }
-      this.addDrawer = true
-      this.submitType = 2
-    },
+    //权限操作
     getLimitData(row){//获取权限信息
-      this.limitDialog = true
+      this.limitDialog = true;
       //存储id，用于权限提交
-      this.limitId = row.account_id
-      this.$store.commit('handleLoding')
+      this.limitId = row.id;
+      this.$store.commit('handleLoding');
       request({
         url:"/account/selectPower",
         method:"post",
         data:{
-          account_id:row.account_id
+          account_id:row.id
         }
       }).then(res => {
         // window.console.log(res)
@@ -500,29 +476,33 @@ export default {
           pageSize:this.pageSize
         }
       }).then(res => {
-        // window.console.log(res)
-        //将数据循环放进数组中
-        this.accData = []
-        let {allCount,list} = res.data.respond;
-        list.forEach((value) => {
-          this.accData.push(value);
-        });
+        // window.console.log(res);
+        let {list,allCount} = handleRequest.call(this,res.data);
         this.allPage = allCount;
-      }).catch(e => {
-        window.console.log(e)
+        this.accData = [];
+        list.forEach(ele => {
+          this.accData.push({
+            id:ele.account_id,
+            pass:ele.pass,
+            passMd5:ele.pass_md5,
+            power:ele.power,
+            user:ele.user,
+            des:ele.remarks
+          });
+        });
+      }).catch((e) => {
+        window.console.log(e);
       }).finally(()=>{
         this.$store.commit('handleLoding');
       })
     },
     hanSiChange(val){//分页条数改变
-      // window.console.log(`每页 ${val} 条`);
       this.pageSize = val
-      this.getAccData.call(this)
+      this.getAccData();
     },
     hanCurrChange(val){//当前页改变
-      // window.console.log(`当前页: ${val}`);
       this.currPage = val
-      this.getAccData.call(this)
+      this.getAccData();
     },
   },
 
