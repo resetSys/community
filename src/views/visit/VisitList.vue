@@ -573,10 +573,13 @@ export default {
               deviceIds:this.threadForm.deviceIds
             }
           }).then((res) => {
+            window.console.log(res);
             let respond = handleRequest.call(this,res.data);
             if (respond !== false) {
               this.$message({
                 dangerouslyUseHTMLString:true,
+                duration:0,
+                showClose:true,
                 message: respond,
                 type: 'success'
               });
