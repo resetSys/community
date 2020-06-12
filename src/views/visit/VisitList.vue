@@ -196,7 +196,6 @@ import { transform,handleRequest } from "@/utils";
 //网络请求
 import { request } from "@/network/request";
 
-
 export default {
   name: 'visitList',
   data() {
@@ -260,14 +259,6 @@ export default {
         ],
         picture:[
           {required: true, message: '请选择照片', trigger: 'change'},
-           {validator:(rule,val,callback)=> {
-            let reg = /^1[3456789]\d{9}$/;
-            if (!reg.test(val)) {
-              callback(new Error('手机号格式不正确'))
-            } else {
-              callback();
-            }
-          },trigger:'change'}
         ],
       },
       //提交类型
@@ -363,6 +354,7 @@ export default {
         this.$store.commit('handleLoding')
       });
     },
+
     previewPicture(picture){//图片预览
       this.previewImg = picture;
       this.prePicDialog = true;
@@ -448,7 +440,7 @@ export default {
                 face_img:this.perForm.picture
               }
             }).then((res) => {
-              window.console.log(res);
+              // window.console.log(res);
               let respond = handleRequest.call(this,res.data);
               if (respond !== false) {
                 this.$message({
@@ -529,6 +521,7 @@ export default {
       }
       this[dialog] = true
     },
+
     //添加访程
     addThread(id){
       this.cTDialog = true;
@@ -573,7 +566,7 @@ export default {
               deviceIds:this.threadForm.deviceIds
             }
           }).then((res) => {
-            window.console.log(res);
+            // window.console.log(res);
             let respond = handleRequest.call(this,res.data);
             if (respond !== false) {
               this.$message({
@@ -602,7 +595,9 @@ export default {
       this.threadForm.deviceIds=[];
       this.$refs['threadForm'].resetFields();
       this.cTDialog = false;
-    }
+    },
+    /**获取默认可绑定的数据 */
+    
   }
 }
 </script>

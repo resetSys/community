@@ -7,7 +7,22 @@
     </title-bar>
     <search-bar>
       <span slot="control">
-        
+        <el-input size="small" v-model="searchForm.name" clearable
+          style="width:200px;" placeholder="根据访客姓名搜索"></el-input>
+        <el-input size="small" v-model="searchForm.tel"  clearable
+          style="width:200px;" placeholder="根据访客手机号搜索"></el-input>
+        <el-select v-model="searchForm.sex" placeholder="根据性别检索" clearable
+          style="width:200px;margin-right:5px;">
+          <el-option label="男" value="男"></el-option>
+          <el-option label="女" value="女"></el-option>
+        </el-select>
+        <el-select v-model="searchForm.status" placeholder="根据进出类型检索" clearable
+          style="width:200px;margin-right:5px;">
+          <el-option label="已出" :value="2"></el-option>
+          <el-option label="已入" :value="1"></el-option>
+          <el-option label="未访问" :value="0"></el-option>
+        </el-select>
+        <el-button size="small" type="primary" @click="getThreadData">搜索</el-button>
       </span>
     </search-bar>
     <el-scrollbar class="scrollbar">
@@ -211,6 +226,14 @@ export default {
       allPage:0,
       currPage:1,
 
+      //搜索表单
+      searchForm:{
+        name:'',
+        tel:'',
+        sex:'',
+        status:null
+      },
+
       //修改访程时间
       eTDialog:false,
       endTime:null,
@@ -241,7 +264,7 @@ export default {
     this.getThreadData();
     this.timer = window.setInterval(() => {
       this.getThreadData();
-    }, 30000);
+    }, 5000);
   },
   beforeDestroy(){
     window.clearInterval(this.timer);
@@ -249,13 +272,17 @@ export default {
   methods:{
     //获取访程数据
     getThreadData() {
-      this.$store.commit('handleLoding');
+      // this.$store.commit('handleLoding');
       request({
         url:"/visitCurrent/select",
         method:"post",
         data:{
           currentPage:this.currPage,
           pageSize:this.pageSize,
+          name:this.searchForm.name,
+          tel:this.searchForm.tel,
+          sex:this.searchForm.sex,
+          status:this.searchForm.status
         }
       }).then((res) => {
         let { allCount,list } = handleRequest.call(this,res.data);
@@ -278,7 +305,7 @@ export default {
       }).catch((err) => {
         window.console.log(err);
       }).finally(()=>{
-        this.$store.commit('handleLoding');
+        // this.$store.commit('handleLoding');
       });
     },
     //分页请求
@@ -301,14 +328,15 @@ export default {
     },
     /**将毫秒转化为小时分钟 */
     formatSurplus(row, column, cellValue){
-      if (cellValue<0) {
-        return '已超时';
-      }
+      let milliSecond = Math.abs(cellValue);
       //计算小时
-      let hour = Math.floor(cellValue/3600000);
+      let hour = Math.floor(milliSecond/3600000);
       //计算分钟 小时的余数
-      let rem = cellValue-(hour*3600000);
+      let rem = milliSecond-(hour*3600000);
       let munites = Math.floor(rem/60000);
+      if (cellValue<0) {
+        return '已超时'+hour+'时'+munites+'分';
+      }
       return hour+'时'+munites+'分';
     },
     /**时间剩余 */
@@ -362,6 +390,8 @@ export default {
           //使用代码提示
           this.$message({
             dangerouslyUseHTMLString:true,
+            duration:0,
+            showClose:true,
             message: respond,
             type: 'success'
           });
@@ -431,6 +461,9 @@ export default {
           let respond = handleRequest.call(this,res.data);
           if (respond !== false) {
             this.$message({
+              dangerouslyUseHTMLString:true,
+              duration:0,
+              showClose:true,
               message: respond,
               type: 'success'
             });
@@ -491,6 +524,9 @@ export default {
         let respond = handleRequest.call(this,res.data);
         if (respond !== false) {
           this.$message({
+            dangerouslyUseHTMLString:true,
+            duration:0,
+            showClose:true,
             message: respond,
             type: 'success'
           });
@@ -528,6 +564,8 @@ export default {
           if (respond !== false) {
             this.$message({
               dangerouslyUseHTMLString:true,
+              duration:0,
+              showClose:true,
               message: respond,
               type: 'success'
             });

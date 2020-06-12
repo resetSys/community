@@ -16,6 +16,9 @@
           <router-link to="/home/visitThread">
             <el-menu-item index="1-3">当前访程</el-menu-item>
           </router-link>
+          <router-link to="/home/visitConfig">
+            <el-menu-item index="1-4">访客配置</el-menu-item>
+          </router-link>
         </el-menu-item-group>
       </el-submenu>
     </el-menu>
