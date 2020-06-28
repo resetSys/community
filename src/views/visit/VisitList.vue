@@ -41,17 +41,32 @@
         <el-table-column
           prop="birth"
           align="center"
+          show-overflow-tooltip
           label="出生日期">
         </el-table-column>
         <el-table-column
           prop="idCard"
           align="center"
+          show-overflow-tooltip
           label="身份证号">
         </el-table-column>
         <el-table-column
           prop="tel"
           align="center"
+          show-overflow-tooltip
           label="联系方式">
+        </el-table-column>
+        <el-table-column
+          prop="address"
+          align="center"
+          show-overflow-tooltip
+          label="家庭住址">
+        </el-table-column>
+        <el-table-column
+          prop="nation"
+          align="center"
+          show-overflow-tooltip
+          label="民族">
         </el-table-column>
         <el-table-column
           align="center"
@@ -114,6 +129,15 @@
             <el-form-item label="电话号码" prop="tel">
               <el-input v-model="perForm.tel"></el-input>
             </el-form-item>
+            <el-form-item label="家庭住址" prop="address">
+              <el-input v-model="perForm.address"></el-input>
+            </el-form-item>
+            <el-form-item label="民族" prop="nation">
+              <el-select v-model="perForm.nation" placeholder="请选择">
+                <el-option v-for="(item,index) in nations" :key="index" 
+                  :label="item" :value="item"/>
+              </el-select>
+            </el-form-item>
             <el-form-item label="照片" prop="picture" style="position:relative;height:80px;">
               <div class="box" @click="openBower">
                 <el-image style="width: 100%; height: 100%"
@@ -125,6 +149,31 @@
                   </el-image>
                 <input @change="selectImg" accept=".jpg, .jpeg, .png" class="selectImg" type="file">
               </div>
+              <el-popover
+                class="long-range"
+                placement="bottom"
+                title="选择设备"
+                width="300"
+                trigger="click">
+                <el-scrollbar style="max-height:200px">
+                  <el-table :data="registerDevice">
+                    <el-table-column
+                      label="名称" 
+                      prop="name"
+                      align="center">
+                    </el-table-column>
+                    <el-table-column 
+                      label="操作" 
+                      align="center">
+                      <template slot-scope="scope">
+                        <el-button type="text" @click="handleRegister(scope.row.id)">开启拍照</el-button>
+                        <el-button type="text" @click="handleCard(scope.row.id)">身份证注册</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </el-scrollbar>
+                <el-button slot="reference" type="text">远程注册</el-button>
+              </el-popover>
             </el-form-item>
           </el-form>
         </div>
@@ -171,9 +220,15 @@
         <el-form-item label="备注" prop="des">
           <el-input v-model="threadForm.des"></el-input>
         </el-form-item>
-        <el-form-item label="授权设备" prop="deviceIds">
+        <el-form-item label="大门权限" prop="deviceIds">
           <el-checkbox-group v-model="threadForm.deviceIds">
             <el-checkbox v-for="(item,index) in devices" :key="index"
+              :label="item.id">{{item.name}}</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+        <el-form-item label="其他权限" prop="deviceIds">
+          <el-checkbox-group v-model="threadForm.deviceIds">
+            <el-checkbox v-for="(item,index) in devices1" :key="index"
               :label="item.id">{{item.name}}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
@@ -225,6 +280,8 @@ export default {
         idCard:"",
         tel:"",
         picture:"",
+        nation:"",
+        address:""
       },
       //登记表单规则
       perFormRules:{
@@ -233,36 +290,42 @@ export default {
           {max:30,message: '请输入名称',trigger:'change'}
         ],
         sex:[
-          {required: true, message: '请选择性别', trigger: 'change'}
+          // {required: true, message: '请选择性别', trigger: 'change'}
         ],
         tel:[
-          {required: true, message: '请输入手机号码', trigger: 'cahnge'},
-          {validator:(rule,val,callback)=> {
-            let reg = /^1[3456789]\d{9}$/;
-            if (!reg.test(val)) {
-              callback(new Error('手机号格式不正确'))
-            } else {
-              callback();
-            }
-          },trigger:'change'}
+          // {required: true, message: '请输入手机号码', trigger: 'cahnge'},
+          // {validator:(rule,val,callback)=> {
+          //   let reg = /^1[3456789]\d{9}$/;
+          //   if (!reg.test(val)) {
+          //     callback(new Error('手机号格式不正确'))
+          //   } else {
+          //     callback();
+          //   }
+          // },trigger:'change'}
         ],
         idCard:[
-          {required: true, message: '请选择出生日期', trigger: 'change'},
-          {validator:(rule,val,callback)=> {
-            let reg = /^[1-9]\d{5}(18|19|20|(3\d))\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
-            if (!reg.test(val)) {
-              callback(new Error('身份证号格式不正确'))
-            } else {
-              callback();
-            }
-          },trigger:'change'}
+          // {required: true, message: '请选择出生日期', trigger: 'change'},
+          // {validator:(rule,val,callback)=> {
+          //   let reg = /^[1-9]\d{5}(18|19|20|(3\d))\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
+          //   if (!reg.test(val)) {
+          //     callback(new Error('身份证号格式不正确'))
+          //   } else {
+          //     callback();
+          //   }
+          // },trigger:'change'}
         ],
         picture:[
           {required: true, message: '请选择照片', trigger: 'change'},
         ],
       },
+      //民族类型
+      nations:this.$store.state.nations,
       //提交类型
       submitType:1,
+      //远程注册设备
+      registerDevice:[],
+      //远程注册定时器
+      registerTimer:null,
       
       //查看原图
       prePicDialog:false,
@@ -270,7 +333,8 @@ export default {
       
       //创建访程
       cTDialog:false,
-      devices:[],
+      devices:[],//inOut设备
+      devices1:[],//其他设备
       threadForm:{/*访程表单*/
         id:null,
         startTime:new Date().getTime(),
@@ -306,6 +370,7 @@ export default {
   mounted(){
     this.getPersonData();
     this.getDevice();
+    this.getRegisterDevice();
   },
   methods:{
     //分页请求
@@ -329,7 +394,7 @@ export default {
           sex:this.searchForm.sex,
           name:this.searchForm.name,
           card_id:this.searchForm.idCard,
-          tel:this.searchForm.tel
+          tel:this.searchForm.tel,
         }
       }).then((res) => {
         let respond = handleRequest.call(this,res.data);
@@ -344,7 +409,9 @@ export default {
               birth:ele.birth_day,
               idCard:ele.card_id,
               tel:ele.tel,
-              picture:ele.face_img
+              picture:ele.face_img,
+              address:ele.address,
+              nation:ele.nation
             })
           });
         }
@@ -407,7 +474,9 @@ export default {
                 birth_day:this.perForm.birth,
                 card_id:this.perForm.idCard,
                 tel:this.perForm.tel,
-                face_img:this.perForm.picture
+                face_img:this.perForm.picture,
+                address:this.perForm.address,
+                nation:this.perForm.nation
               }
             }).then((res) => {
               let respond = handleRequest.call(this,res.data);
@@ -437,7 +506,9 @@ export default {
                 birth_day:this.perForm.birth,
                 card_id:this.perForm.idCard,
                 tel:this.perForm.tel,
-                face_img:this.perForm.picture
+                face_img:this.perForm.picture,
+                address:this.perForm.address,
+                nation:this.perForm.nation
               }
             }).then((res) => {
               // window.console.log(res);
@@ -468,7 +539,9 @@ export default {
       for (let key in this[formName]) {
         this[formName][key] = null
       }
-      this[dialog] = false
+      this[dialog] = false;
+      //清除远程注册任务
+      window.clearInterval(this.registerTimer);
     },
     //删除人员
     deletePerson(row){//删除
@@ -522,6 +595,102 @@ export default {
       this[dialog] = true
     },
 
+    /**
+      远程注册
+    */
+    //获取远程注册设备
+    getRegisterDevice(){
+      this.$store.commit('handleLoding');
+      request({
+        url:"/visitor/selectSimpDevice",
+        method:"post",
+      }).then((res) => {
+        // window.console.log(res);
+        this.registerDevice = [];
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          respond.forEach(ele => {
+            this.registerDevice.push({
+              id:ele.device_id,
+              name:ele.device_name
+            })
+          });
+        }
+      }).catch((err) => {
+        window.console.log(err)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      });
+    },
+    //开启远程注册服务
+    handleRegister(id){
+      this.$store.commit('handleLoding');
+      request({
+        url:"/visitor/openCamera",
+        method:"get",
+        params:{
+          device_id:id
+        }
+      }).then((res) => {
+        // window.console.log(res);
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          this.$message({
+            message: respond,
+            type: 'success'
+          });
+          this.getData(id);
+        }
+      }).catch((err) => {
+        window.console.log(err)
+      }).finally(()=>{
+        this.$store.commit('handleLoding');
+      });
+    },
+    //身份证注册
+    handleCard(id){
+      this.$message({
+        message: '设备准备就绪，请刷身份证',
+        type: 'success'
+      });
+      this.getData(id);
+    },
+    //刷新地址，获取数据
+    getData(id){
+      //每次调用前先清除前一个定时器
+      window.clearInterval(this.registerTimer);
+      let num = 0;//记录刷新次数，给最大限定
+      this.registerTimer = setInterval(() => {
+        num++;
+        request({
+          url:"/visitor/getDeviceData",
+          method:"get",
+          params:{
+            device_id:id
+          }
+        }).then((res) => {
+          window.console.log(res);
+          if (res.data != "" || num >= 29) {
+            //清除定时器，销毁timer
+            window.clearInterval(this.registerTimer);
+            this.registerTimer = null;
+            //赋值表单
+            this.perForm.name = res.data.name?res.data.name:this.perForm.name;
+            this.perForm.sex = res.data.sex?res.data.sex:this.perForm.sex;
+            this.perForm.birth = res.data.birthday?res.data.birthday:this.perForm.birth;
+            this.perForm.idCard = res.data.card_id?res.data.card_id:this.perForm.idCard;
+            this.perForm.picture = res.data.face_img?res.data.face_img:this.perForm.picture;
+            this.perForm.nation = res.data.nation?res.data.nation:this.perForm.nation;
+            this.perForm.address = res.data.address?res.data.address:this.perForm.addres;
+          }
+        }).catch((err) => {
+          window.console.log(err);
+        }).finally(()=>{
+        });
+      }, 2000);
+      
+    },
+
     //添加访程
     addThread(id){
       this.cTDialog = true;
@@ -534,11 +703,21 @@ export default {
         url:"/visitCurrent/selectSimpDevice",
         method:"post",
       }).then((res) => {
+        // window.console.log(res)
         this.devices = [];
+        this.devices1 = [];
+        this.threadForm.deviceIds = [];
         let respond = handleRequest.call(this,res.data);
         if (respond !== false) {
-          respond.forEach(ele => {
+          respond.inOut.forEach(ele => {
             this.devices.push({
+              id:ele.device_id,
+              name:ele.device_name
+            });
+            this.threadForm.deviceIds.push(ele.device_id);
+          });
+          respond.NotInOut.forEach(ele => {
+            this.devices1.push({
               id:ele.device_id,
               name:ele.device_name
             });
@@ -588,15 +767,14 @@ export default {
     },
     /**取消提交 */
     cancelThread(){
-      this.threadForm.id=null;
-      this.threadForm.startTime=null;
-      this.threadForm.endTime=null;
-      this.threadForm.des='';
-      this.threadForm.deviceIds=[];
+      // this.threadForm.id=null;
+      // this.threadForm.startTime=null;
+      // this.threadForm.endTime=null;
+      // this.threadForm.des='';
+      // this.threadForm.deviceIds=[];
       this.$refs['threadForm'].resetFields();
       this.cTDialog = false;
     },
-    /**获取默认可绑定的数据 */
     
   }
 }
@@ -641,5 +819,9 @@ export default {
 .preImg{
   width: 100%;
   height: auto;
+}
+/**远程拍照按钮 */
+.long-range{
+  margin-left: 120px;
 }
 </style>

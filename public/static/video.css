@@ -1,0 +1,67 @@
+/*云台控制*/
+.ptz-col{
+  position: relative;
+  width: 150px;
+  height: 150px;
+  background-color: #DCDFE6;
+}
+.ptz-col-it{
+  position: absolute;
+  display: flex;
+  width: 30px;
+  height: 30px;
+}
+.ptz-col-t{
+  top: 0;
+  right: 60px;
+  background: url("../image/t.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-b{
+  bottom: 0;
+  right: 60px;
+  background: url("../image/b.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-l{
+  top: 60px;
+  left: 0;
+  background: url("../image/l.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-r{
+  top: 60px;
+  right: 0;
+  background: url("../image/r.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-lt{
+  top: 15px;
+  left: 15px;
+  background: url("../image/lt.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-rt{
+  top: 15px;
+  right: 15px;
+  background: url("../image/rt.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-lb{
+  bottom: 15px;
+  left: 15px;
+  background: url("../image/lb.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-rb{
+  bottom: 15px;
+  right: 15px;
+  background: url("../image/rb.png") no-repeat center;
+  background-size: 100% 100%;
+}
+.ptz-col-c{
+  bottom: 60px;
+  right: 60px;
+  background: url("../image/c.png") no-repeat center;
+  background-size: 100% 100%;
+}

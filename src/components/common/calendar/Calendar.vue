@@ -60,13 +60,12 @@ export default {
         如果包含则返回true，不包含则返回false
       */
       return (day)=> {
-        // window.console.log("执行")
         let timestamp = new Date(this.year,this.month,day).valueOf();
-        let index = this.timestampArr.findIndex((val)=> val===timestamp)
+        let index = this.timestampArr.findIndex((val)=> val===timestamp);
         if (index === -1) {
           return false
         }
-        return true
+        return true;
       }
     }
   },

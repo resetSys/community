@@ -1,7 +1,7 @@
 <template>
   <div class="team-man">
     <title-bar>
-      <span slot="title">考勤组管理</span>
+      <span slot="title">周期考勤</span>
       <span slot="control">
         <el-button type="primary" size="small" @click="handleAdd">新增</el-button>
       </span>
@@ -33,7 +33,6 @@
           align="center"
           label="操作">
           <template slot-scope="scope">
-
             <el-button style="color:var(--brand-color);" type="text" 
               @click="getRuleData(scope.row)">编辑周期考勤</el-button>
             <el-button style="color:var(--brand-color);" type="text" 
@@ -47,13 +46,13 @@
     <!-- 分页组件 -->
     <pagination :pageSize="pageSize" :allPage="allPage" :currIndex="currPage"
       @hanSiChange="hanSiChange" @hanCurrChange="hanCurrChange"></pagination>
-    <!-- 新增班组 -->
+    <!-- 新增周期 -->
     <el-drawer :visible.sync="addDrawer" 
       :with-header="false"
       :wrapper-closable="$store.state.closeOnClickModal"
       :close-on-press-escape="$store.state.closeOnPresEscape">
       <div class="drawer-title">
-        新增班组
+        新增周期
       </div>
       <el-scrollbar style="height:calc(100vh - 100px);">
         <div class="drawer-con">
@@ -90,12 +89,20 @@
           <el-table-column
             prop="name"
             align="center"
+            show-overflow-tooltip
             label="名称">
           </el-table-column>
           <el-table-column
             prop="type"
             align="center"
+            show-overflow-tooltip
             label="类型">
+          </el-table-column>
+          <el-table-column
+            prop="des"
+            align="center"
+            show-overflow-tooltip
+            label="备注">
           </el-table-column>
           <el-table-column
             align="center"
@@ -175,7 +182,7 @@
       :show-close="false"
       :close-on-press-escape="$store.state.closeOnPresEscape"
       :close-on-click-modal="$store.state.closeOnClickModal">
-      <calendar ref="calendar" @choseData="choseData"/>
+      <calendar ref="calendar" :timestampArr="timestampArr" @choseData="choseData"/>
       <div class="look-team-bottom">
         <el-button type="primary" @click="submitData">确定</el-button>
         <el-button @click="choseDataDialog = false">取消</el-button>
@@ -213,7 +220,7 @@ export default {
           {min: 0, max: 200, message:"长度在400个字符之内", trigger: 'blur'}
         ]
       },
-      teamData:[],
+      teamData:[],//周期考勤数据
       addPerDialog:false,
       teamPersonData:[],
       personData:[{
@@ -222,7 +229,7 @@ export default {
       }],
       lookRuleDialog:false,
       addRuleDialog:false,
-      temaRuleData:[],//绑定规则
+      temaRuleData:[],//绑定规则数据
       ruleData:[],
       isSelectedRule:[],//存储已选择规则
       choseDataDialog:false,//选择日期dialog
@@ -233,8 +240,7 @@ export default {
       pageSize:20,
       allPage:0,
       currPage:1,
-      //日期
-      timestampArr:""
+      timestampArr:[]//存放日期选择的日期
     }
   },
   components: {
@@ -257,11 +263,11 @@ export default {
           if (this.submitType === 1) {
             //执行注册
             request({
-              url:"/cowa/insertCowaGroup",
+              url:"/cowaCycle/insert",
               method:"post",
               data:{
-                cowa_group_name:this.addForm.name,
-                remark:this.addForm.des
+                cycle_name:this.addForm.name,
+                remarks:this.addForm.des
               }
             }).then(res => {
               // window.console.log(res)
@@ -270,31 +276,31 @@ export default {
                 type: 'success'
               });
               //成功后刷新
-              this.getTeam.call(this)
-              this.closeDrawer.call(this,'addForm','addDrawer')
+              this.getTeam();
+              this.closeDrawer('addForm','addDrawer');
             }).catch(err =>{
-              window.console.log(err)
+              window.console.log(err);
             }).finally(()=>{
-              this.$store.commit('handleLoding')
+              this.$store.commit('handleLoding');
             })
           } else if (this.submitType === 2) {
             request({
-              url:"/cowa/updateCowaGroup",
+              url:"/cowaCycle/update",
               method:"post",
               data:{
-                cowa_group_name:this.addForm.name,
-                remark:this.addForm.des,
-                cowa_group_id:this.addForm.id
+                cycle_name:this.addForm.name,
+                remarks:this.addForm.des,
+                cycle_id:this.addForm.id
               }
             }).then(res => {
-              // window.console.log(res)
+              window.console.log(res)
               this.$message({
                 message: res.data.respond,
                 type: 'success'
               });
               //成功后刷新
-              this.getTeam.call(this)
-              this.closeDrawer.call(this,'addForm','addDrawer')
+              this.getTeam()
+              this.closeDrawer('addForm','addDrawer')
             }).catch(err =>{
               window.console.log(err)
             }).finally(()=>{
@@ -316,19 +322,20 @@ export default {
     },
     delMsg(row){
       // window.console.log(row)
-      this.$confirm("确定要删除该班组吗?", '提示', {
+      this.$confirm("确定要删除该条信息吗?", '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.commit('handleLoding')
+        this.$store.commit('handleLoding');
         request({
-          url:"/cowa/deleteCowaGroup",
-          method:"post",
-          data:{
-            cowa_group_id:row.id
+          url:"/cowaCycle/delete",
+          method:"get",
+          params:{
+            cycle_id:row.id
           }
         }).then((res) =>{
+          window.console.log(res);
           this.$message({
             type: 'success',
             message: res.data.respond,
@@ -355,61 +362,63 @@ export default {
       this[dialog] = true
     },
 
-    //获取班组数据
+    /**
+     * 获取周期数据
+     */
     getTeam(){
-      this.$store.commit('handleLoding')
+      this.$store.commit('handleLoding');
       request({
-        url:"/cowa/selectCowaGroup",
+        url:"/cowaCycle/select",
         method:"post",
         data:{
           currentPage:this.currPage,
           pageSize:this.pageSize,
         }
       }).then((res) => {
-        // window.console.log(res)
         let {allCount,list} = handleRequest.call(this,res.data);
         this.allPage = allCount;
-        this.teamData = []
+        this.teamData = [];
         list.forEach(ele => {
           this.teamData.push({
-            id:ele.cowa_group_id,
-            name:ele.cowa_group_name,
-            des:ele.remark
+            id:ele.cycle_id,
+            name:ele.cycle_name,
+            des:ele.remarks
           })
         });
       }).catch((err) => {
-        window.console.log(err)
+        window.console.log(err);
       }).finally(()=>{
-        this.$store.commit('handleLoding')
+        this.$store.commit('handleLoding');
       })
     },
     getRuleData(row){//获取绑定规则
       // window.console.log(row)
-      this.teamId = row.id;
-      this.lookRuleDialog = true
+      this.teamId = row.id;//存储周期id
+      this.lookRuleDialog = true;
       //获取规则
-      this.$store.commit('handleLoding')
+      this.$store.commit('handleLoding');
       request({
-        url:"/cowa/selectGroupOnbind",
-        method:"post",
-        data:{
-          cowa_group_id:row.id
+        url:"/cowaCycle/selectCycleRules",
+        method:"get",
+        params:{
+          cycle_id:row.id
         }
       }).then((res) => {
-        // window.console.log(res)
         let {respond} = res.data;
-        this.temaRuleData = []
+        this.temaRuleData = [];
         respond.forEach(ele => {
           this.temaRuleData.push({
-            id:ele.cowa_group_period_id,
-            name:ele.cowa_name,
-            type:ele.cowa_type
+            id:ele.relate_id,
+            name:ele.rules_name,
+            type:ele.type,
+            des:ele.remarks,
+            times:ele.times
           })
         });
       }).catch((err) => {
         window.console.log(err)
       }).finally(()=>{
-        this.$store.commit('handleLoding')
+        this.$store.commit('handleLoding');
       })
     },
     getAllRule(){//获取所有规则
@@ -482,65 +491,70 @@ export default {
       }
     },
 
-    //分页
+    /**
+     * 分页
+     */
     hanSiChange(val){//分页条数改变
       // window.console.log(val)
-      this.currPage = val
-      // this.getAccData.call(this)
+      this.currPage = val;
+      this.getTeam();
     },
     hanCurrChange(val){//当前页改变
       this.currPage = val
-      // this.getAccData.call(this)
+      this.getTeam();
     },
 
-    /*
-      绑定规则操作
-    */
+    /**
+     * 获取考勤周期绑定日期
+     */
     handleData(row){
-      this.parentId= row.id
-      this.choseDataDialog = true
-      /*
-        应该获取已绑定的时间，发送给日期组件，显示已绑定
-      */
-      request({
-        url:"/cowa/selectScheduleTime",
-        method:"post",
-        data:{
-          cowa_group_period_id:row.id,
+      this.choseDataDialog = true;
+      this.parentId = row.id;//记录该条数据id
+      let dateArr = [];
+      //通过row.id查找该条数据中的times
+      for (let i = 0; i < this.temaRuleData.length; i++) {
+        if (this.temaRuleData[i].id == row.id) {
+          dateArr = this.temaRuleData[i].times;
+          break;
         }
-      }).then((res) => {
-        // window.console.log(res)
-        let { dates } = res.data.respond;
-        /*
-          将字符串转换为数字类型数组
-          空字符串要转换一下
-        */
-        if (dates == "") {
-          this.$refs.calendar.timestampArr = []
+      }
+      setTimeout(() => {
+        //将时间戳赋值给子组件
+        if (dateArr == "" || dateArr == "[]") {
+          this.$refs.calendar.timestampArr = [];
+          this.timestampArr = [];
         } else {
-          this.$refs.calendar.timestampArr = dates.split(',').map(Number)
+          this.$refs.calendar.timestampArr = JSON.parse(dateArr);
+          this.timestampArr = JSON.parse(dateArr);
         }
-      }).catch((err) => {
-        window.console.log(err)
-      });
+
+      }, 100);
+      
+      
     },
-    choseData(val){//接收所选日期
-      this.timestampArr = val.join()
+    /**
+     * 接收所选日期
+     */
+    choseData(val){
+      this.timestampArr = val;
     },
-    submitData(){//提交所选日期
+    /**
+     * 提交所选日期
+     */
+    submitData(){
       /*
         提交成功后要将日期选择器清空
         本地时间戳数组也要清空
       */
       // window.console.log(this.parentId,this.timestampArr)
-      this.$store.commit('handleLoding')
+      this.$store.commit('handleLoding');
       request({
-        url:"/cowa/setScheduleTime",
+        url:"/cowaCycle/updateCycleRulesTimes",
         method:"post",
         data:{
-          cowa_group_period_id:this.parentId,
-          dates:this.timestampArr
-        }
+          relate_id:this.parentId,
+          times: JSON.stringify(this.timestampArr)
+        },
       }).then((res) => {
         this.$message({
           type: 'success',
@@ -551,14 +565,15 @@ export default {
           将timestampArr也清空
           关闭dialog
         */
-        this.$refs.calendar.timestampArr = []
-        this.timestampArr = ""
-        this.choseDataDialog = false
+        this.$refs.calendar.timestampArr = [];
+        this.timestampArr = "";
+        this.choseDataDialog = false;
+        this.getRuleData({id:this.teamId});//刷新数据
       }).catch((err) => {
-        window.console.log(err)
+        window.console.log(err);
       }).finally(()=>{
-        this.$store.commit('handleLoding')
-      })
+        this.$store.commit('handleLoding');
+      });
     },
     handleMove(row,key){//上移下移
       // window.console.log(row.id,key)
@@ -590,16 +605,18 @@ export default {
         this.$store.commit('handleLoding')
       })
     },
+    /**
+     * 移除周期规则
+     */
     delRule(row){
-      this.$store.commit('handleLoding')
+      this.$store.commit('handleLoding');
       request({
-        url:"/cowa/deleteCowaGroupBind",
-        method:"post",
-        data:{
-          cowa_group_period_id:row.id
+        url:"cowaCycle/deleteCycleRules",
+        method:"get",
+        params:{
+          relate_id:row.id
         }
       }).then((res) => {
-        // window.console.log(res);
           this.$message({
             type: 'success',
             message: res.data.respond,
@@ -607,7 +624,7 @@ export default {
         /*
           刷新绑定规则数据
         */
-        this.getRuleData.call(this,{id:this.teamId})
+        this.getRuleData({id:this.teamId});
       }).catch((err) => {
         window.console.log(err)
       }).finally(()=>{
@@ -616,7 +633,7 @@ export default {
     }
   },
   mounted(){
-    this.getTeam.call(this);
+    this.getTeam();
   }
 }
 </script>

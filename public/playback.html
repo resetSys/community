@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+  <title>监控回放</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+  <link rel="stylesheet" href="./static/camera.css">
+</head>
+
+<body>
+  <div id="box">
+    <nav id="nav">  
+      <div id="loading">
+        <div class="bigWheel"></div>
+        <div class="smallWheel"></div>
+      </div>
+      <div id="nav-tit">设备列表</div>
+      <!-- 根据数据遍历设备树 -->
+      <div id="nav-list">
+        <ul class="NL-ul">
+          <!-- <li class="NL-ul-li">
+            <p class="NL-ul-li-tit">ul-li</p>
+            <ul class="NL-ul-li-ul">
+              <li>
+                <label>
+                  <input type="radio" name="select">
+                  ul-li-ul-li
+                </label>
+              </li>
+            </ul>
+          </li> -->
+        </ul>
+      </div>
+      <div id="nav-control">
+        <p class="nav-col-tit">录像回放</p>
+        <div class="nav-col-item">
+          <input id="nav-col-startTime" type="text" value="2020-01-01 08:08:08">
+        </div>
+        <div class="nav-col-item">
+          <input id="nav-col-endTime" type="text" value="2020-01-01 08:08:08">
+        </div>
+        <div class="nav-col-item">
+          <button class="ad-button" onclick="handlePlay()">开始回放</button>
+          <button class="ad-button" onclick="handleStop()">停止回放</button>
+        </div>
+        <div class="nav-col-item">
+          <button class="ad-button">倒放</button>
+          <button class="ad-button">单帧</button>
+        </div>
+        <div class="nav-col-item">
+          <button class="ad-button" onclick="handleOpenSound()">打开声音</button>
+          <button class="ad-button" onclick="handleCloseSound()">关闭声音</button>
+        </div>
+        <div class="nav-col-item" style="justify-content: center;">
+          <button class="col-voice-btn" disabled onclick="handleSetSound(-10)">&nbsp;-&nbsp;</button>
+          <div class="voice-progress">
+            <div class="voice-pro-bar"></div>
+          </div>
+          <button class="col-voice-btn" disabled onclick="handleSetSound(10)">&nbsp;+&nbsp;</button>
+        </div>
+        <p class="nav-col-tit">图像放大</p>
+        <div class="nav-col-item">
+          <button class="ad-button" onclick="handleOpenZoom()">&nbsp;启用电子放大&nbsp;</button>
+          <button class="ad-button" onclick="handleCloseZoom()">&nbsp;禁用电子放大&nbsp;</button>
+        </div>
+        <div class="nav-col-item">
+          <button class="ad-button" onclick="handleOpen3DZoom()">&nbsp;启用3D放大&nbsp;</button>
+          <button class="ad-button" onclick="handleClose3DZoom()">&nbsp;禁用3D放大&nbsp;</button>
+        </div>
+        <p class="nav-col-tit">本地录像</p>
+        <div class="nav-col-item">
+          <button class="ad-button" onclick="handleStartRecord()">开始录像</button>
+          <button class="ad-button" onclick="handleStopRecord()">停止录像</button>
+        </div>
+      </div>
+      <div id="log"></div>
+    </nav>
+    <main id="video">
+      <div id="video-plugin"></div>
+      <footer id="video-control">
+        <div id="vid-col-strip">
+          <span class="button" onclick="handlePlayFast()"><<</span>
+          <span id="video-pause" class="button" onclick="pause()">暂停</span>
+          <span id="video-resume" class="button" onclick="resume()" style="display: none;">播放</span>
+          <span class="button" onclick="handlePlaySlow()">>></span>
+        </div>
+        <span class="button" onclick="screenShot()">抓图</span>
+        <select id="selectWin" onchange="changeWndNum(this.value)" class="select">
+          <option value="1" selected>1*1</option>
+          <option value="2">2*2</option>
+          <option value="3">3*3</option>
+          <option value="4">4*4</option>
+        </select>
+        <select id="stream" class="select" onchange="handleStream()">
+          <option value="1">高清</option>
+          <option value="2">流畅</option>
+        </select>
+        <span id="full" class="button" onclick="clickFullScreen()">全屏</span>
+      </footer>
+    </main>
+  </div>
+</body>
+<script src="./static/jquery-1.7.1.min.js"></script>
+<script src="./static/webVideoCtrl.js"></script>
+<script src="./static/playback.js"></script>
+
+</html>

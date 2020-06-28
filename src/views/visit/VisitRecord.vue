@@ -92,7 +92,7 @@ export default {
       records:[],
 
       /**表格数据检索条件 */
-      pageSize:10,
+      pageSize:30,
       allPage:0,
       currPage:1,
       search:{

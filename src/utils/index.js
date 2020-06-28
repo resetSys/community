@@ -24,6 +24,7 @@ function transform(file,size){
   
 */
 function formatTime(timeStape,format){
+  //如果参数为null，会隐式的转换为0
   // let format = 'Y年M月D日 h:m:s';
   let time = new Date(timeStape)
   let newArr = [];

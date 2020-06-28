@@ -133,6 +133,7 @@ export default {
   border: 15px solid transparent;
   border-right-width: 10px;
   border-left-width: 10px;
+  border-bottom-color: #fff;
   border-bottom-color: rgb(255, 255, 255, .5);
 }
 .form-wrap{
@@ -140,7 +141,9 @@ export default {
   height: 320px;
   margin-top: 20px;
   border-radius: 10px;
+  background-color: #fff;
   background-color: rgb(255, 255, 255, .5);
+
 }
 .f-w-content{
   width: 100%;
@@ -151,6 +154,7 @@ export default {
   display: -webkit-flex;
   flex-direction: column;
   justify-content: center;
+  opacity: 1;
 }
 .el-form-item>>>.el-form-item__content{
   text-align: center;

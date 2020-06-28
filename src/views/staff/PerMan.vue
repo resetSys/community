@@ -393,6 +393,31 @@
                   </el-image>
                 <input @change="selectImg" accept=".jpg, .jpeg, .png" class="selectImg" type="file">
               </div>
+              <el-popover
+                class="long-range"
+                placement="bottom"
+                title="选择设备"
+                width="300"
+                trigger="click">
+                <el-scrollbar style="max-height:200px">
+                  <el-table :data="registerDevice">
+                    <el-table-column
+                      label="名称" 
+                      prop="name"
+                      align="center">
+                    </el-table-column>
+                    <el-table-column 
+                      label="操作" 
+                      align="center">
+                      <template slot-scope="scope">
+                        <el-button type="text" @click="handleRegister(scope.row.id)">开启拍照</el-button>
+                        <el-button type="text" @click="handleCard(scope.row.id)">身份证注册</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </el-scrollbar>
+                <el-button slot="reference" type="text">远程注册</el-button>
+              </el-popover>
             </el-form-item>
           </el-form>
         </div>
@@ -460,8 +485,8 @@ export default {
       },
       perFormRules:{
         name:[
-          {required: true, message: '请输入名称', trigger: 'blur'},
-          {max:30,message: '请输入名称',trigger:'blur'}
+          {required: true, message: '请输入名称', trigger: 'change'},
+          {max:30,message: '请输入名称',trigger:'change'}
         ],
         sex:[
           // {required: true, message: '请选择性别', trigger: 'blur'}
@@ -471,25 +496,25 @@ export default {
         ],
         tel:[
           // {required: true, message: '请输入手机号码', trigger: 'blur'},
-          {validator:(rule,val,callback)=> {
-            let reg = /^1[3456789]\d{9}$/;
-            if (!reg.test(val)) {
-              callback(new Error('手机号格式不正确'))
-            } else {
-              callback();
-            }
-          },trigger:'blur'}
+          // {validator:(rule,val,callback)=> {
+          //   let reg = /^1[3456789]\d{9}$/;
+          //   if (!reg.test(val)) {
+          //     callback(new Error('手机号格式不正确'))
+          //   } else {
+          //     callback();
+          //   }
+          // },trigger:'blur'}
         ],
         idCard:[
-          // {required: true, message: '请选择出生日期', trigger: 'blur'},
-          {validator:(rule,val,callback)=> {
-            let reg = /^[1-9]\d{5}(18|19|20|(3\d))\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
-            if (!reg.test(val)) {
-              callback(new Error('身份证号格式不正确'))
-            } else {
-              callback();
-            }
-          },trigger:'blur'}
+          // {required: false, message: '请选择出生日期', trigger: 'blur'},
+          // {validator:(rule,val,callback)=> {
+          //   let reg = /^[1-9]\d{5}(18|19|20|(3\d))\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
+          //   if (!reg.test(val)) {
+          //     callback(new Error('身份证号格式不正确'))
+          //   } else {
+          //     callback();
+          //   }
+          // },trigger:'blur'}
         ],
         address:[
           // {required: true, message: '请选择家庭住址', trigger: 'blur'}
@@ -498,7 +523,7 @@ export default {
           {required: true, message: '请选择照片', trigger: 'blur'}
         ],
         jobNum:[
-          {required: true, message: '请输入工号', trigger: 'blur'},
+          {required: true, message: '请输入工号', trigger: 'change'},
           {validator:(rule,val,callback)=> {
             let reg = /^[0-9]*$/;
             if (!reg.test(val)) {
@@ -508,12 +533,14 @@ export default {
             } else {
               callback();
             }
-          },trigger:'blur'}
+          },trigger:'change'}
         ]
       },
       citys:this.$store.state.citys,
       branchs:[],
       nations:this.$store.state.nations,
+      registerDevice:[],//远程注册设备
+      registerTimer:null,//远程注册定时器
       //分页
       pageSize:10,
       allPage:0,
@@ -538,12 +565,12 @@ export default {
     // distpicker
     pagination
   },
+  mounted(){
+    this.getPersonData();
+    this.getBrandData();
+    this.getRegisterDevice();
+  },
   methods:{
-    // 新增账户
-    handleAdd(){
-      this.addDrawer = true
-      this.submitType = 1
-    },
     getPersonData(){//获取人员数据
       this.$store.commit('handleLoding');
       let branchId = this.searchForm.branch.length== 0? null: this.searchForm.branch[this.searchForm.branch.length-1];
@@ -587,6 +614,23 @@ export default {
       }).finally(()=>{
         this.$store.commit('handleLoding')
       });
+    },
+    //分页请求
+    hanSiChange(val){//分页条数改变
+      // window.console.log(`每页 ${val} 条`);
+      this.pageSize = val
+      this.getPersonData.call(this)
+    },
+    hanCurrChange(val){//当前页改变
+      // window.console.log(`当前页: ${val}`);
+      this.currPage = val
+      this.getPersonData.call(this)
+    },
+
+    // 新增账户
+    handleAdd(){
+      this.addDrawer = true
+      this.submitType = 1
     },
     getBrandData(){//获取所有的部门
       this.$store.commit('handleLoding')
@@ -743,6 +787,100 @@ export default {
         }
       });
     },
+    
+    //获取远程注册设备
+    getRegisterDevice(){
+      this.$store.commit('handleLoding');
+      request({
+        url:"/visitor/selectSimpDevice",
+        method:"post",
+      }).then((res) => {
+        // window.console.log(res);
+        this.registerDevice = [];
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          respond.forEach(ele => {
+            this.registerDevice.push({
+              id:ele.device_id,
+              name:ele.device_name
+            })
+          });
+        }
+      }).catch((err) => {
+        window.console.log(err)
+      }).finally(()=>{
+        this.$store.commit('handleLoding')
+      });
+    },
+    //开启远程注册服务
+    handleRegister(id){
+      this.$store.commit('handleLoding');
+      request({
+        url:"/visitor/openCamera",
+        method:"get",
+        params:{
+          device_id:id
+        }
+      }).then((res) => {
+        // window.console.log(res);
+        let respond = handleRequest.call(this,res.data);
+        if (respond !== false) {
+          this.$message({
+            message: respond,
+            type: 'success'
+          });
+          this.getData(id);
+        }
+      }).catch((err) => {
+        window.console.log(err)
+      }).finally(()=>{
+        this.$store.commit('handleLoding');
+      });
+    },
+    //身份证注册
+    handleCard(id){
+      this.$message({
+        message: '设备准备就绪，请刷身份证',
+        type: 'success'
+      });
+      this.getData(id);
+    },
+    //刷新地址，获取数据
+    getData(id){
+      //每次调用前先清除前一个定时器
+      window.clearInterval(this.registerTimer);
+      let num = 0;//记录刷新次数，给最大限定
+      this.registerTimer = setInterval(() => {
+        num++;
+        request({
+          url:"/visitor/getDeviceData",
+          method:"get",
+          params:{
+            device_id:id
+          }
+        }).then((res) => {
+          // window.console.log(res);
+          if (res.data != "" || num >= 29) {
+            //清除定时器，销毁timer
+            window.clearInterval(this.registerTimer);
+            this.registerTimer = null;
+            //赋值表单
+            this.perForm.name = res.data.name?res.data.name:this.perForm.name;
+            this.perForm.sex = res.data.sex?res.data.sex:this.perForm.sex;
+            this.perForm.birth = res.data.birthday?res.data.birthday:this.perForm.birth;
+            this.perForm.idCard = res.data.card_id?res.data.card_id:this.perForm.idCard;
+            this.perForm.picture = res.data.face_img?res.data.face_img:this.perForm.picture;
+            this.perForm.nation = res.data.nation?res.data.nation:this.perForm.nation;
+            this.perForm.address = res.data.address?res.data.address:this.perForm.addres;
+          }
+        }).catch((err) => {
+          window.console.log(err);
+        }).finally(()=>{
+        });
+      }, 2000);
+      
+    },
+
     getJobNum(){//自动生成工号
       this.$store.commit('handleLoding')
       request({
@@ -766,9 +904,11 @@ export default {
       */
       this.$refs[formName].resetFields()
       for (let key in this[formName]) {
-        this[formName][key] = null
+        this[formName][key] = null;
       }
-      this[dialog] = false
+      this[dialog] = false;
+      //清除远程注册定时器
+      window.clearInterval(this.registerTimer);
     },
     onSelected(data){//选择地址
       window.console.log(data)
@@ -815,17 +955,7 @@ export default {
       })
     },
 
-    //分页请求
-    hanSiChange(val){//分页条数改变
-      // window.console.log(`每页 ${val} 条`);
-      this.pageSize = val
-      this.getPersonData.call(this)
-    },
-    hanCurrChange(val){//当前页改变
-      // window.console.log(`当前页: ${val}`);
-      this.currPage = val
-      this.getPersonData.call(this)
-    },
+    
     /*
       根据条件查询
     */
@@ -834,6 +964,9 @@ export default {
       this.getPersonData.call(this)
     },
     changeTime(row){//格式化表格数据
+      if (row.enterDate == null) {
+        return '';
+      }
       return formatTime(row.enterDate,'Y-M-D')
     },
     /*
@@ -1042,10 +1175,7 @@ export default {
       });
     },
   },
-  mounted(){
-    // this.getPersonData.call(this)
-    this.getBrandData.call(this);
-  }
+  
 }
 </script>
 
@@ -1098,5 +1228,9 @@ export default {
   height: auto;
   padding-top: 10px; 
   text-align: center;
+}
+/**远程拍照按钮 */
+.long-range{
+  margin-left: 120px;
 }
 </style>

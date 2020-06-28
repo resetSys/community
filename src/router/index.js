@@ -34,6 +34,8 @@ const Infopush = () => import("../views/extend/Infopush.vue");
 const CarMan = () => import("../views/car/CarMan.vue");
 const CarMan2 = () => import("../views/car/CarMan2.vue");
 const CarRecord = () => import("../views/car/CarRecord.vue");
+//视频监控
+const Preview = () => import("../views/camera/Preview.vue");
 
 Vue.use(vueRouter);
 
@@ -115,6 +117,10 @@ let routes = [{
     {
       path:"/home/visitConfig",
       component:VisitConfig
+    },
+    {
+      path:"/home/preview",
+      component:Preview
     }
   ]
 }]

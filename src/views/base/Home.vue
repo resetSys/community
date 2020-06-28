@@ -38,6 +38,11 @@
             <img slot="img" src="~assets/imgs/tabControl/car.png" alt="">
             <p slot="title">车辆管理</p>
           </tab-control-item>
+          <tab-control-item @click.native="tabConClick(80,'camera')"
+            :class="{'tabConActive':navName == 'camera','is-disabled':isDisabled(80)}">
+            <img slot="img" src="~assets/imgs/tabControl/camera.png" alt="">
+            <p slot="title">视频监控</p>
+          </tab-control-item>
         </tab-control>
       </el-aside>
       <el-container>
@@ -72,6 +77,8 @@ import account from "views/navList/Account"
 import wechat from "views/navList/Wechat"
 import device from "views/navList/Device"
 import car from "views/navList/Car"
+import camera from "views/navList/Camera"
+
 //工具
 import hide from "components/common/toggle/Hide"
 import show from "components/common/toggle/Show"
@@ -89,7 +96,7 @@ export default {
       navName:'staff',
       navAside:true,
       navWidth:200,
-      limits:[10,20,30,40,50,60,70],
+      limits:[10,20,30,40,50,60,70,80],
     }
   },
   components: {
@@ -102,9 +109,10 @@ export default {
     account,
     wechat,
     car,
+    camera,
     device,
     hide,
-    show
+    show,
   },
   computed:{
     // isDisabled(){
